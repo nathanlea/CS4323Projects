@@ -14,37 +14,54 @@ public class Job implements Comparable{
     private int     waitingStarted = 0;
     private int     totalWaiting = 0;
     private int     timeActivated = 0;
-    private MemoryBlock memoryBlock;
+    public MemoryBlock memoryBlock;
 
     private boolean rejected = false;
     private int     rejectedTime = 0;
 
     private boolean completed = false;
 
-    public Job(int size, int duration, int creationTime) {
+    public Job(int size, int duration) {
         this.size = size;
         this.duration = duration;
-        this.creationTime = creationTime;
     }
-
+    /*
     public void setWaiting(int waitingTime) {
         this.waitingStarted = waitingTime;
         this.waiting = true;
     }
+    */
 
-    public void activateJob(int currentTime, MemoryBlock memoryBlock) {
+    public void activateJob(int currentTime) {
         this.waiting = false;
         this.active = true;
         totalWaiting  = currentTime-waitingStarted;
         this.timeActivated = currentTime;
+        memoryBlock.setActive();
+    }
+
+    public void placeJob(int currentTime, MemoryBlock memoryBlock) {
+        this.waiting = true;
+        this.active = false;
+        this.waitingStarted  = currentTime;
         this.memoryBlock = memoryBlock;
         this.memoryBlock.setJob(this);
     }
 
     public void completeJob(){
-        this.completed = true;
         memoryBlock.setCompleted();
         this.memoryBlock = null;
+        this.completed = true;
+        this.waiting = false;
+        this.active = false;
+    }
+
+    public int turnAroundTime( ) {
+        return ( timeActivated - waitingStarted) + duration;
+    }
+
+    public int waitingTime( ) {
+        return timeActivated - waitingStarted;
     }
 
     public void rejectJob(int currentTime) {
@@ -82,10 +99,6 @@ public class Job implements Comparable{
 
     public int getTimeActivated() {
         return timeActivated;
-    }
-
-    public MemoryBlock getMemoryBlock() {
-        return memoryBlock;
     }
 
     public boolean isRejected() {

@@ -3,7 +3,8 @@ package com.nathanlea;
 public class Main {
 
     public static void main(String[] args) {
-	// write your code here
-        new MemoryManagement(0).start();
+        for( int o = 0; o < 1000; o++) {
+            new MemoryManagement(0).start();
+        }
     }
 }

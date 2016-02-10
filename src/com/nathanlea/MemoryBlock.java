@@ -14,10 +14,17 @@ public class MemoryBlock {
     public MemoryBlock(int base, int size) {
         this.base = base;
         this.size = size;
+        this.used = false;
+        this.active = false;
     }
 
     public void setJob( Job job ){
         this.currentJob = job;
+        this.used = true;
+        this.active = false;
+    }
+
+    public void setActive( ) {
         this.used = true;
         this.active = true;
     }
@@ -25,18 +32,20 @@ public class MemoryBlock {
     public void setCompleted() {
         used = false;
         active = false;
+        currentJob = null;
     }
 
     /*
     @Return This method return the left over space that is to claimed by an unused memory block
      */
     public int reActivate( int size, Job newJob ) {
-        int ret = this.size - size;
+        int ret = this.size;
         this.size = size;
         used = true;
-        active = true;
+        active = false;
         currentJob = newJob;
-        return ret;
+        //System.out.println("RET: " + ret + "size: " + size + "Left Over: " + (ret-size));
+        return (ret - size);
     }
 
     public int getBase() {
@@ -60,6 +69,9 @@ public class MemoryBlock {
     }
 
     public String toString() {
-        return "Base: " + getBase() + " Size: " + getSize()+ " Active: " + active + " CurrentJob: " + (getCurrentJob() != null);
+        if(getCurrentJob() != null)
+            return "Base: " + getBase() + " Size: " + getSize()+ " Used: " + used + " Active: " + active + " CurrentJobSize: " + getCurrentJob().getSize();
+        else
+            return "Base: " + getBase() + " Size: " + getSize()+ " Used: " + used + " Active: " + active + " CurrentJobSize: " + 0;
     }
 }
