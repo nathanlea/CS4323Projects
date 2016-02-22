@@ -65,7 +65,8 @@ public class MemoryManagement {
             //Initial First Case
             if( firstJobArrives == VTU ) {
                 //Generate New Job
-                int[] job = loader(++nextJobPID, VTU);
+                nextJobPID++;
+                int[] job = loader(nextJobPID, VTU);
                 //Place job in memory
                 memoryManager(job);
                 //add PID to readyQueue to get activated
@@ -76,7 +77,8 @@ public class MemoryManagement {
                 //Completion
                 //Remove from memory
                 removeJobFromMemory(currentJob);
-                nextJobPID = currentJob++;
+                currentJob++;
+                nextJobPID = currentJob;
             }
 
             while( nextJobArrival <= VTU && memoryManager(jobAtDoor) ) {
@@ -84,7 +86,8 @@ public class MemoryManagement {
                 if( jobAtDoor[0] != 0 ) {
                     readyQueue.add(jobAtDoor[0]);
                 }
-                jobAtDoor = loader(++nextJobPID, VTU);
+                nextJobPID++;
+                jobAtDoor = loader(nextJobPID, VTU);
                 nextJobArrival += r.nextInt(10)+1;
             }
 
@@ -129,19 +132,20 @@ public class MemoryManagement {
         int curMemoryPID = memory[0];
         int activeJobPID = currentJob;
 
-        //if(PID == 0) return true;
+        if(PID == 0) return true;
 
         //Find a hole for the job to go
         for( int i = 0; i< memory.length; i++) {
-            if( curMemoryPID != memory[i] || memory[i] == 0 ) {
-                //Next job Found
+            if( memory[i] == memory[i+1] || memory[i] == 0 ) {
+                //Empty job Found
                 //Hole?
-                if( memory[i] <  activeJobPID ) {
+                int offset = readyQueue.size() == 0 ? readyQueue.size() - 1 : readyQueue.size();
+                if( memory[i] < ( activeJobPID + offset) ) {
                     //Hole!!
                     //Will it fit!
-                    if( memory.length > i+(size/10)+1 && memory[i] == memory[i+(size/10)]) {
+                    if( memory.length > i+(size/10)+1 && ( memory[i] == memory[i+(size/10)] || memory[i+(size/10)] == 0)) {
                         //It will fit!
-                        //Place job in memory
+                        //Place job
                         memory[i]   = PID;
                         memory[i+1] = size ^ PID;
                         memory[i+2] = duration ^ PID;
