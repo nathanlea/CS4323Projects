@@ -1,4 +1,5 @@
 package com.nathanlea;
+import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
@@ -20,6 +21,7 @@ public class MemoryManagement {
     }
 
     int method = 0;
+    boolean notRejected = true;
 
     int[] memory = new int[180];
 
@@ -38,6 +40,7 @@ public class MemoryManagement {
         int firstJobArrives = r.nextInt(10)+1;
         int nextJobArrival = firstJobArrives;
         int[] jobAtDoor = new int[4];
+        boolean a = true;
         //System.out.println(nextJob);
 
         //Each loop is a VTU
@@ -71,22 +74,47 @@ public class MemoryManagement {
                 memoryManager(job);
                 //add PID to readyQueue to get activated
                 readyQueue.add(job[0]);
+                nextJobPID++;
             }
+
+            if( nextJobArrival >= 5000) { break; }
 
             if( currentJob != 9001 ) {
                 //Completion
                 //Remove from memory
-                removeJobFromMemory(currentJob);
-                currentJob++;
-                nextJobPID = currentJob;
+                a = removeJobFromMemory(currentJob);
+                /*if(!a) {
+                    System.out.print("");
+                }
+                System.out.print("REMOVED: " + currentJob);
+                System.out.println("  Fail?: " + a);// ) { //currentJob++; }     */
+                /*for(int i = 0; i < memory.length; i++ ) {
+                    System.out.print(memory[i] + ", " );
+                }
+                System.out.println(); */
+
+                //System.out.println("ACTUALLY: " + currentJob);
+
+                //nextJobPID = currentJob;
+            }
+
+            if(!a && readyQueue.isEmpty()) {
+                //We are in idle so lets hurry this along...
+                VTU = nextJobArrival;
             }
 
             while( nextJobArrival <= VTU && memoryManager(jobAtDoor) ) {
 
-                if( jobAtDoor[0] != 0 ) {
+                if( jobAtDoor[0] != 0 && notRejected ) {
                     readyQueue.add(jobAtDoor[0]);
+                    nextJobPID++;
+
+                    for(int i = 0; i < memory.length; i++ ) {
+                        System.out.print(memory[i] + ", " );
+                    }
+                    System.out.println();
+
                 }
-                nextJobPID++;
                 jobAtDoor = loader(nextJobPID, VTU);
                 nextJobArrival += r.nextInt(10)+1;
             }
@@ -95,16 +123,17 @@ public class MemoryManagement {
                 //Start job
                 //Dispatcher
                 currentJob = readyQueue.poll();
+                System.out.println("Active Job: " + currentJob);
                 VTU += getDurationOfJob(currentJob);
             }
-            System.out.println(VTU);
+            //System.out.println("VTU: " + VTU);
         }
         //Finished
         //Output data
         //memoryDump();
         //System.out.print("COMPLETED," + completedJobs.size());
         //System.out.print(",WAITING," + waitingJobs.size());
-        //System.out.print(",REJECTED," + rejectedJobs.size());
+        System.out.print(",REJECTED," + rejectedJobs.size());
         //System.out.print(",Turnaround," + turnAroundTime());
         //System.out.print(",Waiting," + waitingTime());
         //System.out.print(",Processing," + processingTime());
@@ -115,7 +144,8 @@ public class MemoryManagement {
         //Linear Search
         for( int i = 0; i < memory.length; i++) {
             if( memory[i] == PID ) {
-                return (memory[i+2] ^ PID);
+                System.out.println("PID: " + (memory[i+2]));
+                return (memory[i+2]);
             }
         }
         //EXCEPTION
@@ -135,25 +165,34 @@ public class MemoryManagement {
         if(PID == 0) return true;
 
         //Find a hole for the job to go
-        for( int i = 0; i< memory.length; i++) {
+        for( int i = 0; i< memory.length - 1; i++) {
             if( memory[i] == memory[i+1] || memory[i] == 0 ) {
                 //Empty job Found
                 //Hole?
-                int offset = readyQueue.size() == 0 ? readyQueue.size() - 1 : readyQueue.size();
-                if( memory[i] < ( activeJobPID + offset) ) {
+                //int offset = readyQueue.size() == 0 ? readyQueue.size() - 1 : readyQueue.size();
+                //Negative means hole
+                if( memory[i] < 0 || memory[i] == 0 ) {
                     //Hole!!
                     //Will it fit!
-                    if( memory.length > i+(size/10)+1 && ( memory[i] == memory[i+(size/10)] || memory[i+(size/10)] == 0)) {
+                    int sizeOfHole = 1;
+                    int j = i;
+                    while(memory.length > j+1 && ( memory[j] == memory[j+1] || memory[j] == 0 ) ) {
+                        sizeOfHole++;
+                        j++;
+                    }
+                    if( ( size/10 ) <= sizeOfHole ) {
                         //It will fit!
                         //Place job
+                        System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
                         memory[i]   = PID;
-                        memory[i+1] = size ^ PID;
-                        memory[i+2] = duration ^ PID;
-                        memory[i+3] = genTime ^ PID;
+                        memory[i+1] = size;// ^ PID;
+                        memory[i+2] = duration;// ^ PID;
+                        memory[i+3] = genTime;// ^ PID;
                         memory[i+4] = PID;
                         for(int m = i+5; m < ( size / 10 ) + ( i ); m++) {
                             memory[m] = PID;
                         }
+                        notRejected = true;
                         return true;
                     } else {
                         //It won't fit, find next hole
@@ -162,33 +201,42 @@ public class MemoryManagement {
                 }
             }
         }
+
         //No current hole, will there ever be a hole?
-        int lastHoleLocation = 5;
-        for( int i = 5; i< memory.length; i++) {
-            if (curMemoryPID != memory[i]) {
-                if( ( size / 10 ) <= ( i - lastHoleLocation + 5 ) ) {
+        //int lastHoleLocation = 5;
+        for( int i = 0; i< memory.length - 1; i++) {
+            if (memory[i] == memory[i + 1] || memory[i] == 0) {
+                //Will it fit! Somewhere
+                int sizeOfHole = 1;
+                int j = i;
+                while (memory.length > j + 1 && (memory[j] == memory[j + 1])) {
+                    sizeOfHole++;
+                    j++;
+                }
+                if( ( size / 10 ) <= sizeOfHole ) {
                     //it will eventually fit
+                    notRejected = true;
                     return false;
-                } else {
-                    i+=5;
-                    lastHoleLocation = i;
                 }
             }
         }
         //No possible place for it to go
         rejectedJobs.add(PID);
+        notRejected = false;
         return true;
     }
 
-    private void removeJobFromMemory(Integer currentJob) {
+    private boolean removeJobFromMemory(Integer currentJob) {
         for(int i = 0; i < memory.length; i++) {
             if(memory[i] ==  currentJob) {
-                memory[i+1] = currentJob;
-                memory[i+2] = currentJob;
-                memory[i+3] = currentJob;
-                break;
+                int size = memory[i+1];// ^ currentJob;
+                for( int j = i; j < ( size / 10) + i; j++ ) {
+                    memory[j] = -1 * currentJob;
+                }
+                return true;
             }
         }
+        return false;
     }
 
     public int[] loader(int nextJobPID, int VTU) {
