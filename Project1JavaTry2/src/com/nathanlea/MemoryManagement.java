@@ -130,7 +130,7 @@ public class MemoryManagement {
         System.out.print(",Turnaround," + turnAroundTime);
         System.out.print(",Waiting," + waitingTime);
         System.out.print(",Processing," + processingTime);
-        System.out.print(",Ending Time," + endVTUTIME);
+        System.out.print(",Ending Time," + nextJobArrival);
         System.out.println();
     }
 
