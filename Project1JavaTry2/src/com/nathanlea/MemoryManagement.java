@@ -85,10 +85,10 @@ public class MemoryManagement {
                 int b = getDurationOfJob(currentJob);
                 int c = getJobTime(currentJob);
                 a = removeJobFromMemory(currentJob);
-                if( a && ( VTU>=1000 && VTU<=4000 ) ) {
-                    //System.out.println("PID COMPLETE: " + currentJob + " @ " + VTU);
-                    //System.out.println("WAITING: " + ( VTU - c ));
-                    //System.out.println("Processing Time: " + b);
+                if( a ) {//&& ( VTU>=1000 && VTU<=4000 ) ) {
+                    System.out.println("PID COMPLETE: " + currentJob + " @ " + VTU);
+                    System.out.println("WAITING: " + ( VTU - c ));
+                    System.out.println("Processing Time: " + b);
                     waitingTime += VTU - c;
                     processingTime += b;
                     turnAroundTime += ( VTU - c ) + b;
@@ -116,6 +116,7 @@ public class MemoryManagement {
                 //Dispatcher
                 currentJob = readyQueue.poll();
                 VTU += getDurationOfJob(currentJob);
+                System.out.println(VTU);
             }
         }
         //Finished
@@ -135,9 +136,10 @@ public class MemoryManagement {
 
     private int getDurationOfJob(int PID){
         //Linear Search
+        System.out.println("PID: " + PID);
         for( int i = 0; i < memory.length; i++) {
             if( memory[i] == PID ) {
-                //System.out.println("PID: " + (memory[i+2]));
+                System.out.println("Duration: " + (memory[i+2]));
                 return (memory[i+2]);
             }
         }
@@ -167,59 +169,180 @@ public class MemoryManagement {
         if(PID == 0) return true;
 
         //Find a hole for the job to go
-        for( int i = 0; i< memory.length - 1; i++) {
-            if( memory[i] == memory[i+1] || memory[i] == 0 ) {
-                //Empty job Found
-                //Hole?
-                //Negative means hole
-                if( memory[i] < 0 || memory[i] == 0 ) {
+        if( method == 0 ) { //FIRST FIT
+            for (int i = 0; i < memory.length - 1; i++) {
+                if (memory[i] == memory[i + 1] || memory[i] == 0) {
+                    //Empty job Found
+                    //Hole?
+                    //Negative means hole
+                    if (memory[i] < 0 || memory[i] == 0) {
+                        //Hole!!
+                        //Will it fit!
+                        int sizeOfHole = 1;
+                        int j = i;
+                        while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
+                            sizeOfHole++;
+                            j++;
+                        }
+                        if ((size / 10) <= sizeOfHole) {
+                            //It will fit!
+                            //Place job
+                            //System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
+                            memory[i] = PID;
+                            memory[i + 1] = size;// ^ PID;
+                            memory[i + 2] = duration;// ^ PID;
+                            memory[i + 3] = genTime;// ^ PID;
+                            memory[i + 4] = PID;
+                            for (int m = i + 5; m < (size / 10) + (i); m++) {
+                                memory[m] = PID;
+                            }
+                            notRejected = true;
+                            return true;
+                        } else {
+                            //It won't fit, find next hole
+                        }
+                    }
+                }
+            }
+
+            //No current hole, will there ever be a hole?
+            for( int i = 0; i< memory.length - 1; i++) {
+                if (memory[i] == memory[i + 1] || memory[i] == 0) {
+                    //Will it fit! Somewhere
+                    int sizeOfHole = 1;
+                    int j = i;
+                    while (memory.length > j + 1 && (memory[j] == memory[j + 1])) {
+                        sizeOfHole++;
+                        j++;
+                    }
+                    if( ( size / 10 ) <= sizeOfHole ) {
+                        //it will eventually fit
+                        notRejected = true;
+                        return false;
+                    }
+                }
+            }
+            //No possible place for it to go
+            rejectedJobs.add(PID);
+            notRejected = false;
+            return true;
+
+        } else if ( method == 1 ) {  //BEST FIT
+            int bestSize = 999;
+            int bestSizeLocation = 0;
+            boolean currentHole = true;
+            for (int i = 0; i < memory.length - 1; i++) {
+                if (memory[i] == memory[i + 1] || memory[i] == 0) {
                     //Hole!!
                     //Will it fit!
                     int sizeOfHole = 1;
                     int j = i;
-                    while(memory.length > j+1 && ( memory[j] == memory[j+1] || memory[j] == 0 ) ) {
+                    while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
                         sizeOfHole++;
                         j++;
                     }
-                    if( ( size/10 ) <= sizeOfHole ) {
-                        //It will fit!
-                        //Place job
-                        //System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
-                        memory[i]   = PID;
-                        memory[i+1] = size;// ^ PID;
-                        memory[i+2] = duration;// ^ PID;
-                        memory[i+3] = genTime;// ^ PID;
-                        memory[i+4] = PID;
-                        for(int m = i+5; m < ( size / 10 ) + ( i ); m++) {
-                            memory[m] = PID;
+                    // We Found a hole with a size that could fit the job
+                    // Is it the best sized hole that we have found
+
+                    if ((size / 10) <= sizeOfHole) {
+                        int extraRoom = sizeOfHole - (size / 10);
+                        int bestSoFarExtraRoom = bestSize - (size / 10);
+
+                        if (extraRoom < bestSoFarExtraRoom) {
+                            bestSize = sizeOfHole;
+                            bestSizeLocation = i;
+                            currentHole = memory[i] <= 0;
                         }
-                        notRejected = true;
-                        return true;
-                    } else {
-                        //It won't fit, find next hole
+                    }
+                    i=j;
+                }
+            }
+            if( currentHole && bestSize != 0 ) {
+                //Place job
+                //System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
+                memory[bestSizeLocation] = PID;
+                memory[bestSizeLocation + 1] = size;// ^ PID;
+                memory[bestSizeLocation + 2] = duration;// ^ PID;
+                memory[bestSizeLocation + 3] = genTime;// ^ PID;
+                memory[bestSizeLocation + 4] = PID;
+                for (int m = bestSizeLocation + 5; m < (size / 10) + (bestSizeLocation); m++) {
+                    memory[m] = PID;
+                }
+                for(int ik = 0; ik < memory.length; ik++ ) {
+                    System.out.print(memory[ik] + ", " );
+                }
+                System.out.println();
+                notRejected = true;
+                return true;
+            } else if ( !currentHole ) {
+                //The best possible hole is not yet free
+                //Wait until free
+                notRejected = true;
+                return false;
+            } else {
+            //Not ever going to fit
+            //Reject the job
+            rejectedJobs.add(PID);
+            notRejected = false;
+            return true;
+            }
+        } else if ( method == 2 ) { //Worst Fit
+            int worstSize = 0;
+            int worstSizeLocation = 0;
+            boolean currentHole = true;
+            for (int i = 0; i < memory.length - 1; i++) {
+                if (memory[i] == memory[i + 1] || memory[i] == 0) {
+                    //Hole!!
+                    //Will it fit!
+                    int sizeOfHole = 1;
+                    int j = i;
+                    while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
+                        sizeOfHole++;
+                        j++;
+                    }
+                    // We Found a hole with a size that could fit the job
+                    // Is it the worst sized hole that we have found
+                    if ((size / 10) <= sizeOfHole) {
+                        int extraRoom = sizeOfHole - (size / 10);
+                        int worstSoFarExtraRoom = worstSize - (size / 10);
+
+                        if (extraRoom > worstSoFarExtraRoom) {
+                            worstSize = sizeOfHole;
+                            worstSizeLocation = i;
+                            currentHole = ( memory[i] <= 0 );
+                        }
                     }
                 }
             }
-        }
-
-        //No current hole, will there ever be a hole?
-        for( int i = 0; i< memory.length - 1; i++) {
-            if (memory[i] == memory[i + 1] || memory[i] == 0) {
-                //Will it fit! Somewhere
-                int sizeOfHole = 1;
-                int j = i;
-                while (memory.length > j + 1 && (memory[j] == memory[j + 1])) {
-                    sizeOfHole++;
-                    j++;
+            if( currentHole && worstSize != 0 && worstSizeLocation != 0 ) {
+                //Place job
+                //System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
+                memory[worstSizeLocation] = PID;
+                memory[worstSizeLocation + 1] = size;// ^ PID;
+                memory[worstSizeLocation + 2] = duration;// ^ PID;
+                memory[worstSizeLocation + 3] = genTime;// ^ PID;
+                memory[worstSizeLocation + 4] = PID;
+                for (int m = worstSizeLocation + 5; m < (size / 10) + (worstSizeLocation); m++) {
+                    memory[m] = PID;
                 }
-                if( ( size / 10 ) <= sizeOfHole ) {
-                    //it will eventually fit
-                    notRejected = true;
-                    return false;
-                }
+                notRejected = true;
+                return true;
+            } else if ( !currentHole ) {
+                //The best possible hole is not yet free
+                //Wait until free
+                notRejected = true;
+                return false;
+            } else {
+                //Not ever going to fit
+                //Reject the job
+                rejectedJobs.add(PID);
+                notRejected = false;
+                return true;
             }
         }
-        //No possible place for it to go
+
+        //It should never ever get here, but if it does
+        //Reject the job
         rejectedJobs.add(PID);
         notRejected = false;
         return true;
