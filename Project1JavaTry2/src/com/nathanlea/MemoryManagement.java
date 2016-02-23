@@ -14,14 +14,14 @@ public class MemoryManagement {
 
     final int startingPID = 10000;
     Random r = new Random();
-
-    public MemoryManagement ( int method ) {
-        //Starts the memory management
-        this.method = method;
-    }
-
     int method = 0;
+
     boolean notRejected = true;
+    int nextJobPID = startingPID;
+    int jobsInRange = 0;
+    double turnAroundTime = 0;
+    double waitingTime = 0;
+    double processingTime = 0;
 
     int[] memory = new int[180];
 
@@ -29,73 +29,71 @@ public class MemoryManagement {
     Integer currentJob = 9001;
     Queue<Integer> rejectedJobs = new PriorityQueue<Integer>();
 
-    int nextJobPID = startingPID;
+    public MemoryManagement ( int method ) {
+        //Starts the memory management
+        this.method = method;
+    }
 
     public void start( ) {
         //Main loop
+        boolean a = true;
 
-        //Init memory Block
+        int nextStatOutput = 100;
+
+        int[] jobAtDoor = new int[4];
 
         //Get first job arrival Time
         int firstJobArrives = r.nextInt(10)+1;
         int nextJobArrival = firstJobArrives;
-        int[] jobAtDoor = new int[4];
-        boolean a = true;
-        //System.out.println(nextJob);
 
-        //Each loop is a VTU
+        //Event Generated Loop
+
         for( int VTU = firstJobArrives; VTU < 5000; ) {
-           /* if(VTU==1000) {
-                System.out.println(rejectedJobs.size());
-            }
-            if(VTU==2000) {
-                System.out.println(rejectedJobs.size());
-            }
-            if(VTU==3000) {
-                System.out.println(rejectedJobs.size());
-            }
-            if(VTU==4000) {
-                System.out.println(rejectedJobs.size());
-            }
-            if(VTU%100==0) {
+            if(VTU > nextStatOutput) {
+                if(nextStatOutput%1000==0) {
+                    System.out.print("Rejected Job Num: ");
+                    System.out.println(rejectedJobs.size());
+                    System.out.println();
+                }
                 System.out.println("Current VTU: " + VTU);
-                System.out.println("Complete Jobs: " + completedJobs.size());
+                System.out.println("Complete Jobs: " + (currentJob - 10000));
                 System.out.println("Average Hole: " + averageHoleSize());
                 System.out.println("Total Fragmented Bytes: " + totalFragmentBytes());
                 System.out.println("Storage Utilization: " + storageUtilization());
                 System.out.println();System.out.println();
-            } */
+                nextStatOutput+=100;
+            }
             //Initial First Case
             if( firstJobArrives == VTU ) {
                 //Generate New Job
                 nextJobPID++;
                 int[] job = loader(nextJobPID, VTU);
+
                 //Place job in memory
                 memoryManager(job);
+
                 //add PID to readyQueue to get activated
                 readyQueue.add(job[0]);
                 nextJobPID++;
             }
 
-            if( nextJobArrival >= 5000) { break; }
-
             if( currentJob != 9001 ) {
+                //System
                 //Completion
                 //Remove from memory
+
+                int b = getDurationOfJob(currentJob);
+                int c = getJobTime(currentJob);
                 a = removeJobFromMemory(currentJob);
-                /*if(!a) {
-                    System.out.print("");
+                if( a && ( VTU>=1000 && VTU<=4000 ) ) {
+                    //System.out.println("PID COMPLETE: " + currentJob + " @ " + VTU);
+                    //System.out.println("WAITING: " + ( VTU - c ));
+                    //System.out.println("Processing Time: " + b);
+                    waitingTime += VTU - c;
+                    processingTime += b;
+                    turnAroundTime += ( VTU - c ) + b;
+                    jobsInRange++;
                 }
-                System.out.print("REMOVED: " + currentJob);
-                System.out.println("  Fail?: " + a);// ) { //currentJob++; }     */
-                /*for(int i = 0; i < memory.length; i++ ) {
-                    System.out.print(memory[i] + ", " );
-                }
-                System.out.println(); */
-
-                //System.out.println("ACTUALLY: " + currentJob);
-
-                //nextJobPID = currentJob;
             }
 
             if(!a && readyQueue.isEmpty()) {
@@ -108,12 +106,6 @@ public class MemoryManagement {
                 if( jobAtDoor[0] != 0 && notRejected ) {
                     readyQueue.add(jobAtDoor[0]);
                     nextJobPID++;
-
-                    for(int i = 0; i < memory.length; i++ ) {
-                        System.out.print(memory[i] + ", " );
-                    }
-                    System.out.println();
-
                 }
                 jobAtDoor = loader(nextJobPID, VTU);
                 nextJobArrival += r.nextInt(10)+1;
@@ -123,20 +115,21 @@ public class MemoryManagement {
                 //Start job
                 //Dispatcher
                 currentJob = readyQueue.poll();
-                System.out.println("Active Job: " + currentJob);
                 VTU += getDurationOfJob(currentJob);
             }
-            //System.out.println("VTU: " + VTU);
         }
         //Finished
         //Output data
         //memoryDump();
-        //System.out.print("COMPLETED," + completedJobs.size());
-        //System.out.print(",WAITING," + waitingJobs.size());
+        waitingTime    = waitingTime    / (jobsInRange);
+        turnAroundTime = turnAroundTime / (jobsInRange);
+        processingTime = processingTime / (jobsInRange);
+        System.out.print("COMPLETED," + (currentJob - 10000));
+        System.out.print(",WAITING," + ( nextJobPID - currentJob ));
         System.out.print(",REJECTED," + rejectedJobs.size());
-        //System.out.print(",Turnaround," + turnAroundTime());
-        //System.out.print(",Waiting," + waitingTime());
-        //System.out.print(",Processing," + processingTime());
+        System.out.print(",Turnaround," + turnAroundTime);
+        System.out.print(",Waiting," + waitingTime);
+        System.out.print(",Processing," + processingTime);
         System.out.println();
     }
 
@@ -144,8 +137,20 @@ public class MemoryManagement {
         //Linear Search
         for( int i = 0; i < memory.length; i++) {
             if( memory[i] == PID ) {
-                System.out.println("PID: " + (memory[i+2]));
+                //System.out.println("PID: " + (memory[i+2]));
                 return (memory[i+2]);
+            }
+        }
+        //EXCEPTION
+        //TODO
+        return -1;
+    }
+
+    private int getJobTime(int PID){
+        //Linear Search
+        for( int i = 0; i < memory.length; i++) {
+            if( memory[i] == PID ) {
+                return (memory[i+3]);
             }
         }
         //EXCEPTION
@@ -159,9 +164,6 @@ public class MemoryManagement {
         int duration = job[2];
         int genTime  = job[3];
 
-        int curMemoryPID = memory[0];
-        int activeJobPID = currentJob;
-
         if(PID == 0) return true;
 
         //Find a hole for the job to go
@@ -169,7 +171,6 @@ public class MemoryManagement {
             if( memory[i] == memory[i+1] || memory[i] == 0 ) {
                 //Empty job Found
                 //Hole?
-                //int offset = readyQueue.size() == 0 ? readyQueue.size() - 1 : readyQueue.size();
                 //Negative means hole
                 if( memory[i] < 0 || memory[i] == 0 ) {
                     //Hole!!
@@ -183,7 +184,7 @@ public class MemoryManagement {
                     if( ( size/10 ) <= sizeOfHole ) {
                         //It will fit!
                         //Place job
-                        System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
+                        //System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
                         memory[i]   = PID;
                         memory[i+1] = size;// ^ PID;
                         memory[i+2] = duration;// ^ PID;
@@ -196,14 +197,12 @@ public class MemoryManagement {
                         return true;
                     } else {
                         //It won't fit, find next hole
-                        curMemoryPID = memory[i];
                     }
                 }
             }
         }
 
         //No current hole, will there ever be a hole?
-        //int lastHoleLocation = 5;
         for( int i = 0; i< memory.length - 1; i++) {
             if (memory[i] == memory[i + 1] || memory[i] == 0) {
                 //Will it fit! Somewhere
@@ -227,9 +226,9 @@ public class MemoryManagement {
     }
 
     private boolean removeJobFromMemory(Integer currentJob) {
-        for(int i = 0; i < memory.length; i++) {
+        for(int i = 0; i < memory.length ; i++) {
             if(memory[i] ==  currentJob) {
-                int size = memory[i+1];// ^ currentJob;
+                int size = memory[i+1];
                 for( int j = i; j < ( size / 10) + i; j++ ) {
                     memory[j] = -1 * currentJob;
                 }
@@ -245,89 +244,56 @@ public class MemoryManagement {
         duration = 5*(Math.round(duration/5));
         return new int[] {nextJobPID, size, duration, VTU};
     }
-    /*
-    public MemoryBlock[] getAvailableMemory() {
-        ArrayList<MemoryBlock> availableMemory = new ArrayList<MemoryBlock>();
 
-        for(int i = 0; i < memoryBlocks.size(); i++) {
-            if( !memoryBlocks.get(i).isUsed() ) {
-                availableMemory.add(memoryBlocks.get(i));
-            }
-        }
-        return (MemoryBlock[])availableMemory.toArray();
-    }
-
-    public int getLargestMemoryBlockLeft() {
-        int largestMemory = 0;
-        for(int i = 0; i < memoryBlocks.size(); i++) {
-            if( memoryBlocks.get(i).getSize() > largestMemory ) {
-                largestMemory = memoryBlocks.get(i).getSize();
-            }
-        }
-        return largestMemory;
-    }
-    private void memoryDump() {
-        for(int i = 0; i < memoryBlocks.size(); i++) {
-            System.out.println(i+": "+ memoryBlocks.get(i));
-        }
-    }
     private float averageHoleSize() {
         int total = 0;
         int count = 0;
-        for(int i = 0; i < memoryBlocks.size(); i++) {
-            if(!memoryBlocks.get(i).isUsed()) {
-                total+=memoryBlocks.get(i).getSize();
-                count++;
+        for(int i = 0; i < memory.length - 1; i++) {
+            if( memory[i] == memory[i+1] || memory[i] == 0 ) {
+                if (memory[i] < 0 || memory[i] == 0) {
+                    int sizeOfHole = 1;
+                    int j = i;
+                    while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
+                        sizeOfHole++;
+                        j++;
+                    }
+                    i=j;
+                    total+=sizeOfHole;
+                    count++;
+                }
             }
         }
+        total*=10;
         return (float) ((total*1.0)/(count*1.0));
     }
+
     private float totalFragmentBytes() {
         int total = 0;
-        for(int i = 0; i < memoryBlocks.size(); i++) {
-            if(memoryBlocks.get(i).getSize()<50) {
-                total+=memoryBlocks.get(i).getSize();
+        for(int i = 0; i < memory.length - 1; i++) {
+            if( memory[i] == memory[i+1] || memory[i] == 0 ) {
+                if (memory[i] < 0 || memory[i] == 0) {
+                    int sizeOfHole = 1;
+                    int j = i;
+                    while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
+                        sizeOfHole++;
+                        j++;
+                    }
+                    if(sizeOfHole < 5)
+                        total+=sizeOfHole;
+                    i=j;
+                }
             }
         }
-        return total;
+        return total*10;
     }
+
     private float storageUtilization() {
         float total = 0;
-        for(int i = 0; i < memoryBlocks.size(); i++) {
-            if(memoryBlocks.get(i).isUsed()) {
-                total+=memoryBlocks.get(i).getSize();
+        for(int i = 0; i < memory.length; i++) {
+            if(memory[i] > 0) {
+                total++;
             }
         }
-        return (float) ((total/1800.0) * 100.0);
+        return (float) ((total/180.0) * 100.0);
     }
-
-    private double turnAroundTime() {
-        int totalTurnAroundTime = 0;
-        double avgTurnAroundTime = 0;
-        for(int i = 0; i < completedJobs.size(); i++) {
-            totalTurnAroundTime += completedJobs.get(i).turnAroundTime();
-        }
-        avgTurnAroundTime = ( totalTurnAroundTime  * 1.0 ) / completedJobs.size();
-        return avgTurnAroundTime;
-    }
-    private double waitingTime() {
-        int totalWaitingTime = 0;
-        double avgWaitingTime = 0;
-        for(int i = 0; i < completedJobs.size(); i++) {
-            totalWaitingTime += completedJobs.get(i).waitingTime();
-        }
-        avgWaitingTime = ( totalWaitingTime * 1.0 ) / completedJobs.size();
-        return avgWaitingTime;
-    }
-    private double processingTime() {
-        int totalProcessingTime = 0;
-        double avgProcessingTime = 0;
-        for(int i = 0; i < completedJobs.size(); i++) {
-            totalProcessingTime += completedJobs.get(i).getDuration();
-        }
-        avgProcessingTime = ( totalProcessingTime * 1.0 ) / completedJobs.size();
-        return avgProcessingTime;
-    }
-    */
-
 }
