@@ -1,5 +1,4 @@
 package com.nathanlea;
-import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
@@ -7,8 +6,6 @@ import java.util.Random;
 /**
  * Created by Nathan on 2/8/2016.
  */
-
-
 
 public class MemoryManagement {
 
@@ -39,6 +36,7 @@ public class MemoryManagement {
         boolean a = true;
 
         int nextStatOutput = 100;
+        int endVTUTIME = 0;
 
         int[] jobAtDoor = new int[4];
 
@@ -49,7 +47,7 @@ public class MemoryManagement {
         //Event Generated Loop
 
         for( int VTU = firstJobArrives; VTU < 5000; ) {
-            if(VTU > nextStatOutput) {
+           /* if(VTU > nextStatOutput) {
                 if(nextStatOutput%1000==0) {
                     System.out.print("Rejected Job Num: ");
                     System.out.println(rejectedJobs.size());
@@ -62,7 +60,7 @@ public class MemoryManagement {
                 System.out.println("Storage Utilization: " + storageUtilization());
                 System.out.println();System.out.println();
                 nextStatOutput+=100;
-            }
+            }   */
             //Initial First Case
             if( firstJobArrives == VTU ) {
                 //Generate New Job
@@ -85,10 +83,10 @@ public class MemoryManagement {
                 int b = getDurationOfJob(currentJob);
                 int c = getJobTime(currentJob);
                 a = removeJobFromMemory(currentJob);
-                if( a ) {//&& ( VTU>=1000 && VTU<=4000 ) ) {
-                    System.out.println("PID COMPLETE: " + currentJob + " @ " + VTU);
+                if( a && ( VTU>=1000 && VTU<=4000 ) ) {
+                    /*System.out.println("PID COMPLETE: " + currentJob + " @ " + VTU);
                     System.out.println("WAITING: " + ( VTU - c ));
-                    System.out.println("Processing Time: " + b);
+                    System.out.println("Processing Time: " + b);   */
                     waitingTime += VTU - c;
                     processingTime += b;
                     turnAroundTime += ( VTU - c ) + b;
@@ -116,8 +114,9 @@ public class MemoryManagement {
                 //Dispatcher
                 currentJob = readyQueue.poll();
                 VTU += getDurationOfJob(currentJob);
-                System.out.println(VTU);
+                //System.out.println(VTU);
             }
+            endVTUTIME = VTU;
         }
         //Finished
         //Output data
@@ -131,15 +130,16 @@ public class MemoryManagement {
         System.out.print(",Turnaround," + turnAroundTime);
         System.out.print(",Waiting," + waitingTime);
         System.out.print(",Processing," + processingTime);
+        System.out.print(",Ending Time," + endVTUTIME);
         System.out.println();
     }
 
     private int getDurationOfJob(int PID){
         //Linear Search
-        System.out.println("PID: " + PID);
+        //System.out.println("PID: " + PID);
         for( int i = 0; i < memory.length; i++) {
             if( memory[i] == PID ) {
-                System.out.println("Duration: " + (memory[i+2]));
+                //System.out.println("Duration: " + (memory[i+2]));
                 return (memory[i+2]);
             }
         }
@@ -230,7 +230,9 @@ public class MemoryManagement {
         } else if ( method == 1 ) {  //BEST FIT
             int bestSize = 999;
             int bestSizeLocation = 0;
+            boolean bestLocationHole = true;
             boolean currentHole = true;
+
             for (int i = 0; i < memory.length - 1; i++) {
                 if (memory[i] == memory[i + 1] || memory[i] == 0) {
                     //Hole!!
@@ -244,6 +246,11 @@ public class MemoryManagement {
                     // We Found a hole with a size that could fit the job
                     // Is it the best sized hole that we have found
 
+                    if( memory[i] > 0 ) {
+                        sizeOfHole+=4;
+                        currentHole = false;
+                    } else { currentHole = true; }
+
                     if ((size / 10) <= sizeOfHole) {
                         int extraRoom = sizeOfHole - (size / 10);
                         int bestSoFarExtraRoom = bestSize - (size / 10);
@@ -251,15 +258,15 @@ public class MemoryManagement {
                         if (extraRoom < bestSoFarExtraRoom) {
                             bestSize = sizeOfHole;
                             bestSizeLocation = i;
-                            currentHole = memory[i] <= 0;
+                            bestLocationHole = currentHole;
+                            //System.out.println("Size: "+ bestSize + " Location: " + bestSizeLocation + " Hole: " + bestLocationHole);
                         }
                     }
                     i=j;
                 }
             }
-            if( currentHole && bestSize != 0 ) {
+            if( bestLocationHole && bestSize != 999 ) {
                 //Place job
-                //System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
                 memory[bestSizeLocation] = PID;
                 memory[bestSizeLocation + 1] = size;// ^ PID;
                 memory[bestSizeLocation + 2] = duration;// ^ PID;
@@ -268,13 +275,9 @@ public class MemoryManagement {
                 for (int m = bestSizeLocation + 5; m < (size / 10) + (bestSizeLocation); m++) {
                     memory[m] = PID;
                 }
-                for(int ik = 0; ik < memory.length; ik++ ) {
-                    System.out.print(memory[ik] + ", " );
-                }
-                System.out.println();
                 notRejected = true;
                 return true;
-            } else if ( !currentHole ) {
+            } else if ( !bestLocationHole ) {
                 //The best possible hole is not yet free
                 //Wait until free
                 notRejected = true;
@@ -289,7 +292,9 @@ public class MemoryManagement {
         } else if ( method == 2 ) { //Worst Fit
             int worstSize = 0;
             int worstSizeLocation = 0;
+            boolean worstLocationHole = true;
             boolean currentHole = true;
+
             for (int i = 0; i < memory.length - 1; i++) {
                 if (memory[i] == memory[i + 1] || memory[i] == 0) {
                     //Hole!!
@@ -301,7 +306,13 @@ public class MemoryManagement {
                         j++;
                     }
                     // We Found a hole with a size that could fit the job
-                    // Is it the worst sized hole that we have found
+                    // Is it the best sized hole that we have found
+
+                    if( memory[i] > 0 ) {
+                        sizeOfHole+=4;
+                        currentHole = false;
+                    } else { currentHole = true; }
+
                     if ((size / 10) <= sizeOfHole) {
                         int extraRoom = sizeOfHole - (size / 10);
                         int worstSoFarExtraRoom = worstSize - (size / 10);
@@ -309,14 +320,15 @@ public class MemoryManagement {
                         if (extraRoom > worstSoFarExtraRoom) {
                             worstSize = sizeOfHole;
                             worstSizeLocation = i;
-                            currentHole = ( memory[i] <= 0 );
+                            worstLocationHole = currentHole;
+                            //System.out.println("Size: "+ bestSize + " Location: " + bestSizeLocation + " Hole: " + bestLocationHole);
                         }
                     }
+                    i=j;
                 }
             }
-            if( currentHole && worstSize != 0 && worstSizeLocation != 0 ) {
+            if( worstLocationHole && worstSize != 0 ) {
                 //Place job
-                //System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
                 memory[worstSizeLocation] = PID;
                 memory[worstSizeLocation + 1] = size;// ^ PID;
                 memory[worstSizeLocation + 2] = duration;// ^ PID;
@@ -327,7 +339,7 @@ public class MemoryManagement {
                 }
                 notRejected = true;
                 return true;
-            } else if ( !currentHole ) {
+            } else if ( !worstLocationHole ) {
                 //The best possible hole is not yet free
                 //Wait until free
                 notRejected = true;
