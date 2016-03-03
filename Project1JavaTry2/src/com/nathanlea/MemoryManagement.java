@@ -19,6 +19,7 @@ public class MemoryManagement {
     double turnAroundTime = 0;
     double waitingTime = 0;
     double processingTime = 0;
+    int idleTime = 0;
 
     int[] memory = new int[180];
 
@@ -47,20 +48,21 @@ public class MemoryManagement {
         //Event Generated Loop
 
         for( int VTU = firstJobArrives; VTU < 5000; ) {
-           /* if(VTU > nextStatOutput) {
-                if(nextStatOutput%1000==0) {
+           if(VTU > nextStatOutput) {
+                /*if(nextStatOutput%1000==0) {
                     System.out.print("Rejected Job Num: ");
                     System.out.println(rejectedJobs.size());
                     System.out.println();
-                }
-                System.out.println("Current VTU: " + VTU);
-                System.out.println("Complete Jobs: " + (currentJob - 10000));
-                System.out.println("Average Hole: " + averageHoleSize());
-                System.out.println("Total Fragmented Bytes: " + totalFragmentBytes());
-                System.out.println("Storage Utilization: " + storageUtilization());
-                System.out.println();System.out.println();
+                }  */
+                System.out.println("Current VTU:," + VTU);
+                System.out.println("Complete Jobs:," + (currentJob - 10000));
+                System.out.println("Rejected Jobs:," + rejectedJobs.size());
+                System.out.println("Average Hole:," + averageHoleSize());
+                System.out.println("Total Fragmented Bytes:," + totalFragmentBytes());
+                System.out.println("Storage Utilization:," + storageUtilization());
+                System.out.println();//System.out.println();
                 nextStatOutput+=100;
-            }   */
+            }
             //Initial First Case
             if( firstJobArrives == VTU ) {
                 //Generate New Job
@@ -96,6 +98,7 @@ public class MemoryManagement {
 
             if(!a && readyQueue.isEmpty()) {
                 //We are in idle so lets hurry this along...
+                idleTime += (nextJobArrival - VTU);
                 VTU = nextJobArrival;
             }
 
@@ -130,16 +133,15 @@ public class MemoryManagement {
         System.out.print(",Turnaround," + turnAroundTime);
         System.out.print(",Waiting," + waitingTime);
         System.out.print(",Processing," + processingTime);
-        System.out.print(",Ending Time," + nextJobArrival);
+        System.out.print(",Ending Time," + endVTUTIME);
+        System.out.print(",Idle Time," + idleTime);
         System.out.println();
     }
 
     private int getDurationOfJob(int PID){
         //Linear Search
-        //System.out.println("PID: " + PID);
         for( int i = 0; i < memory.length; i++) {
             if( memory[i] == PID ) {
-                //System.out.println("Duration: " + (memory[i+2]));
                 return (memory[i+2]);
             }
         }
@@ -227,7 +229,7 @@ public class MemoryManagement {
             notRejected = false;
             return true;
 
-        } else if ( method == 1 ) {  //BEST FIT
+        } else if ( method == 1 || method == 3) {  //BEST FIT
             int bestSize = 999;
             int bestSizeLocation = 0;
             boolean bestLocationHole = true;
@@ -237,6 +239,7 @@ public class MemoryManagement {
                 if (memory[i] == memory[i + 1] || memory[i] == 0) {
                     //Hole!!
                     //Will it fit!
+
                     int sizeOfHole = 1;
                     int j = i;
                     while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
@@ -246,10 +249,15 @@ public class MemoryManagement {
                     // We Found a hole with a size that could fit the job
                     // Is it the best sized hole that we have found
 
+                    //Only if it is best best to we want to look at occupied memory
+                    if( method == 1 && memory[i] > 0 ) { i=j; continue; }
+
                     if( memory[i] > 0 ) {
                         sizeOfHole+=4;
                         currentHole = false;
-                    } else { currentHole = true; }
+                    } else {
+                        currentHole = true;
+                    }
 
                     if ((size / 10) <= sizeOfHole) {
                         int extraRoom = sizeOfHole - (size / 10);
@@ -289,7 +297,7 @@ public class MemoryManagement {
             notRejected = false;
             return true;
             }
-        } else if ( method == 2 ) { //Worst Fit
+        } else if ( method == 2 || method == 4) { //Worst Fit
             int worstSize = 0;
             int worstSizeLocation = 0;
             boolean worstLocationHole = true;
@@ -307,6 +315,9 @@ public class MemoryManagement {
                     }
                     // We Found a hole with a size that could fit the job
                     // Is it the best sized hole that we have found
+
+                    //Only if it is worst worst to we want to look at occupied memory
+                    if( method == 2 && memory[i] > 0 ) { i=j; continue; }
 
                     if( memory[i] > 0 ) {
                         sizeOfHole+=4;
