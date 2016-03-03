@@ -54,7 +54,7 @@ public class MemoryManagement {
                     System.out.print("Rejected Job Num: ");
                     System.out.println(rejectedJobs.size());
                     System.out.println();
-                }*/
+                }
                 System.out.println("Current VTU:," + VTU);
                 System.out.println("Complete Jobs:," + (currentJob - 10000));
                 System.out.println("Rejected Jobs:," + rejectedJobs.size());
@@ -62,7 +62,7 @@ public class MemoryManagement {
                 System.out.println("Total Fragmented Bytes:," + totalFragmentBytes());
                 System.out.println("Storage Utilization:," + storageUtilization());
                 System.out.println();//System.out.println();
-                nextStatOutput+=100;
+                nextStatOutput+=100;    */
             }
             //Initial First Case
             if( firstJobArrives == VTU ) {
@@ -127,7 +127,7 @@ public class MemoryManagement {
         }
         //Finished
         //Output data
-        memoryDump();
+        //memoryDump();
         waitingTime    = waitingTime    / (jobsInRange);
         turnAroundTime = turnAroundTime / (jobsInRange);
         processingTime = processingTime / (jobsInRange);
@@ -306,6 +306,34 @@ public class MemoryManagement {
                 //Wait until free
                 notRejected = true;
                 return false;
+            } else if ( bestSize == 999 ) {
+                //Check if it will ever fit
+                //If not reject
+                //No current hole, will there ever be a hole?
+                for( int i = 0; i < memory.length - 1; i++) {
+                    if (memory[i] == memory[i + 1] || memory[i] == 0) {
+                        //Will it fit! Somewhere
+                        int sizeOfHole = 1;
+                        int j = i;
+                        while (memory.length > j + 1 && (memory[j] == memory[j + 1])) {
+                            sizeOfHole++;
+                            j++;
+                        }
+                        if( memory[i] > 0 ) { sizeOfHole+=4;  }
+                        if( ( size / 10 ) <= sizeOfHole ) {
+                            //it will eventually fit
+                            notRejected = true;
+                            //System.out.println("Will Fit but not now");
+                            return false;
+                        }
+                    }
+                }
+                //No possible place for it to go
+                rejectedJobs.add(PID);
+                //memoryDump();
+                //System.out.println("Wont Fit - Reject - " + size);
+                notRejected = false;
+                return true;
             } else {
             //Not ever going to fit
             //Reject the job
@@ -371,6 +399,36 @@ public class MemoryManagement {
                 //Wait until free
                 notRejected = true;
                 return false;
+            } else if ( worstSize == 0 ) {
+                //Check if it will ever fit
+                //If not reject
+                //No current hole, will there ever be a hole?
+                for (int i = 0; i < memory.length - 1; i++) {
+                    if (memory[i] == memory[i + 1] || memory[i] == 0) {
+                        //Will it fit! Somewhere
+                        int sizeOfHole = 1;
+                        int j = i;
+                        while (memory.length > j + 1 && (memory[j] == memory[j + 1])) {
+                            sizeOfHole++;
+                            j++;
+                        }
+                        if (memory[i] > 0) {
+                            sizeOfHole += 4;
+                        }
+                        if ((size / 10) <= sizeOfHole) {
+                            //it will eventually fit
+                            notRejected = true;
+                            //System.out.println("Will Fit but not now");
+                            return false;
+                        }
+                    }
+                }
+                //No possible place for it to go
+                rejectedJobs.add(PID);
+                //memoryDump();
+                //System.out.println("Wont Fit - Reject - " + size);
+                notRejected = false;
+                return true;
             } else {
                 //Not ever going to fit
                 //Reject the job
