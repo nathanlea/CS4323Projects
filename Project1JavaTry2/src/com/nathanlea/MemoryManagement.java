@@ -48,12 +48,13 @@ public class MemoryManagement {
         //Event Generated Loop
 
         for( int VTU = firstJobArrives; VTU < 5000; ) {
+            //System.out.println("VTU: " + VTU);
            if(VTU > nextStatOutput) {
                 /*if(nextStatOutput%1000==0) {
                     System.out.print("Rejected Job Num: ");
                     System.out.println(rejectedJobs.size());
                     System.out.println();
-                }  */
+                }*/
                 System.out.println("Current VTU:," + VTU);
                 System.out.println("Complete Jobs:," + (currentJob - 10000));
                 System.out.println("Rejected Jobs:," + rejectedJobs.size());
@@ -110,20 +111,23 @@ public class MemoryManagement {
                 }
                 jobAtDoor = loader(nextJobPID, VTU);
                 nextJobArrival += r.nextInt(10)+1;
+                //System.out.println("Next Job Arrival: " + nextJobArrival);
             }
 
             if( readyQueue.size() != 0 ) {
                 //Start job
                 //Dispatcher
                 currentJob = readyQueue.poll();
-                VTU += getDurationOfJob(currentJob);
+                int nextjobDuration = getDurationOfJob(currentJob);
+                //System.out.println("Job Duration: " + nextjobDuration);
+                VTU += nextjobDuration;
                 //System.out.println(VTU);
             }
             endVTUTIME = VTU;
         }
         //Finished
         //Output data
-        //memoryDump();
+        memoryDump();
         waitingTime    = waitingTime    / (jobsInRange);
         turnAroundTime = turnAroundTime / (jobsInRange);
         processingTime = processingTime / (jobsInRange);
@@ -160,6 +164,13 @@ public class MemoryManagement {
         //EXCEPTION
         //TODO
         return -1;
+    }
+
+    private void memoryDump( ) {
+        for(int i = 0; i < 180; i++) {
+            System.out.print(memory[i]+ " || ");
+        }
+        System.out.println();
     }
 
     private boolean memoryManager(int[] job) {
@@ -199,6 +210,7 @@ public class MemoryManagement {
                                 memory[m] = PID;
                             }
                             notRejected = true;
+                            //System.out.println("FIT IN MEM");
                             return true;
                         } else {
                             //It won't fit, find next hole
@@ -217,15 +229,19 @@ public class MemoryManagement {
                         sizeOfHole++;
                         j++;
                     }
+                    if( memory[i] > 0 ) { sizeOfHole+=4;  }
                     if( ( size / 10 ) <= sizeOfHole ) {
                         //it will eventually fit
                         notRejected = true;
+                        //System.out.println("Will Fit but not now");
                         return false;
                     }
                 }
             }
             //No possible place for it to go
             rejectedJobs.add(PID);
+            //memoryDump();
+            //System.out.println("Wont Fit - Reject - " + size);
             notRejected = false;
             return true;
 
@@ -366,6 +382,7 @@ public class MemoryManagement {
 
         //It should never ever get here, but if it does
         //Reject the job
+        System.out.println("HEWLP - ERROR");
         rejectedJobs.add(PID);
         notRejected = false;
         return true;
@@ -420,7 +437,7 @@ public class MemoryManagement {
                 if (memory[i] < 0 || memory[i] == 0) {
                     int sizeOfHole = 1;
                     int j = i;
-                    while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
+                    while (memory.length > j + 1 && ((memory[j] == memory[j + 1]) || memory[j] == 0)) {
                         sizeOfHole++;
                         j++;
                     }
@@ -430,6 +447,7 @@ public class MemoryManagement {
                 }
             }
         }
+        System.out.println("FRAG: " + total*10);
         return total*10;
     }
 

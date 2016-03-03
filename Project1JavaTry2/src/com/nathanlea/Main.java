@@ -9,7 +9,7 @@ public class Main {
         // 3 - Best Best Fit - Best Hole Ever
         // 4 - Worst Worst Fit - Worst Hole Ever
         //for( int o = 0; o < 1000; o++) {
-            new MemoryManagement(4).start();
+            new MemoryManagement(0).start();
         //}
     }
 }
