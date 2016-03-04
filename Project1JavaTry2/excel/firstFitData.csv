@@ -1,342 +1,342 @@
 Current VTU:,103
-Complete Jobs:,4
-Rejected Jobs:,0
-Average Hole:,446.66666
-Total Fragmented Bytes:,0.0
-Storage Utilization:,25.555555
-
-Current VTU:,223
-Complete Jobs:,8
-Rejected Jobs:,6
-Average Hole:,63.333332
-Total Fragmented Bytes:,30.0
+Complete Jobs:,3
+Rejected Jobs:,1
+Average Hole:,140
+Total Fragmented Bytes:,40
+Storage Utilization:,84.44444
+,
+Current VTU:,218
+Complete Jobs:,6
+Rejected Jobs:,2
+Average Hole:,95
+Total Fragmented Bytes:,40
 Storage Utilization:,78.333336
-
-Current VTU:,303
-Complete Jobs:,11
-Rejected Jobs:,14
-Average Hole:,47.142857
-Total Fragmented Bytes:,80.0
-Storage Utilization:,81.111115
-
-Current VTU:,438
-Complete Jobs:,14
-Rejected Jobs:,33
-Average Hole:,41.42857
-Total Fragmented Bytes:,110.0
-Storage Utilization:,82.77778
-
-Current VTU:,558
-Complete Jobs:,18
-Rejected Jobs:,50
-Average Hole:,36.666668
-Total Fragmented Bytes:,170.0
-Storage Utilization:,80.55556
-
-Current VTU:,608
-Complete Jobs:,19
-Rejected Jobs:,55
-Average Hole:,36.666668
-Total Fragmented Bytes:,170.0
-Storage Utilization:,80.55556
-
-Current VTU:,708
-Complete Jobs:,22
-Rejected Jobs:,61
-Average Hole:,37.0
-Total Fragmented Bytes:,210.0
-Storage Utilization:,77.77778
-
-Current VTU:,828
-Complete Jobs:,26
-Rejected Jobs:,90
-Average Hole:,36.153847
-Total Fragmented Bytes:,250.0
-Storage Utilization:,72.22222
-
-Current VTU:,903
-Complete Jobs:,29
-Rejected Jobs:,103
-Average Hole:,41.333332
-Total Fragmented Bytes:,250.0
+,
+Current VTU:,328
+Complete Jobs:,9
+Rejected Jobs:,2
+Average Hole:,108.333336
+Total Fragmented Bytes:,40
 Storage Utilization:,63.333332
-
-Current VTU:,1028
-Complete Jobs:,34
-Rejected Jobs:,116
-Average Hole:,36.875
-Total Fragmented Bytes:,300.0
-Storage Utilization:,64.44444
-
-Current VTU:,1113
-Complete Jobs:,38
-Rejected Jobs:,133
-Average Hole:,42.105263
-Total Fragmented Bytes:,320.0
-Storage Utilization:,52.77778
-
-Current VTU:,1203
-Complete Jobs:,40
-Rejected Jobs:,146
-Average Hole:,34.736843
-Total Fragmented Bytes:,380.0
-Storage Utilization:,60.0
-
-Current VTU:,1308
-Complete Jobs:,43
-Rejected Jobs:,164
-Average Hole:,33.0
-Total Fragmented Bytes:,400.0
+,
+Current VTU:,403
+Complete Jobs:,11
+Rejected Jobs:,3
+Average Hole:,95
+Total Fragmented Bytes:,60
+Storage Utilization:,57.22222
+,
+Current VTU:,513
+Complete Jobs:,14
+Rejected Jobs:,3
+Average Hole:,100
+Total Fragmented Bytes:,60
+Storage Utilization:,38.333332
+,
+Current VTU:,608
+Complete Jobs:,17
+Rejected Jobs:,4
+Average Hole:,101.666664
+Total Fragmented Bytes:,60
+Storage Utilization:,31.666666
+,
+Current VTU:,728
+Complete Jobs:,21
+Rejected Jobs:,5
+Average Hole:,94.666664
+Total Fragmented Bytes:,90
+Storage Utilization:,20.555555
+,
+Current VTU:,808
+Complete Jobs:,25
+Rejected Jobs:,16
+Average Hole:,40
+Total Fragmented Bytes:,220
+Storage Utilization:,72.77778
+,
+Current VTU:,928
+Complete Jobs:,28
+Rejected Jobs:,16
+Average Hole:,47.142857
+Total Fragmented Bytes:,220
+Storage Utilization:,60.555557
+,
+Current VTU:,1023
+Complete Jobs:,31
+Rejected Jobs:,16
+Average Hole:,59.411766
+Total Fragmented Bytes:,220
+Storage Utilization:,41.11111
+,
+Current VTU:,1103
+Complete Jobs:,35
+Rejected Jobs:,23
+Average Hole:,42.5
+Total Fragmented Bytes:,330
 Storage Utilization:,59.444443
-
-Current VTU:,1438
+,
+Current VTU:,1228
+Complete Jobs:,40
+Rejected Jobs:,33
+Average Hole:,43.157894
+Total Fragmented Bytes:,330
+Storage Utilization:,51.11111
+,
+Current VTU:,1313
+Complete Jobs:,43
+Rejected Jobs:,33
+Average Hole:,49.545456
+Total Fragmented Bytes:,330
+Storage Utilization:,36.11111
+,
+Current VTU:,1433
 Complete Jobs:,46
-Rejected Jobs:,179
-Average Hole:,34.545456
-Total Fragmented Bytes:,420.0
-Storage Utilization:,53.88889
-
-Current VTU:,1528
+Rejected Jobs:,37
+Average Hole:,47.391304
+Total Fragmented Bytes:,330
+Storage Utilization:,35
+,
+Current VTU:,1523
 Complete Jobs:,48
-Rejected Jobs:,195
-Average Hole:,30.0
-Total Fragmented Bytes:,420.0
-Storage Utilization:,63.88889
-
+Rejected Jobs:,37
+Average Hole:,48.260868
+Total Fragmented Bytes:,330
+Storage Utilization:,33.333332
+,
 Current VTU:,1608
-Complete Jobs:,50
-Rejected Jobs:,209
-Average Hole:,31.0
-Total Fragmented Bytes:,440.0
-Storage Utilization:,61.11111
-
-Current VTU:,1723
+Complete Jobs:,52
+Rejected Jobs:,42
+Average Hole:,50.869564
+Total Fragmented Bytes:,330
+Storage Utilization:,28.88889
+,
+Current VTU:,1708
 Complete Jobs:,54
-Rejected Jobs:,233
-Average Hole:,32.727272
-Total Fragmented Bytes:,440.0
-Storage Utilization:,55.555557
-
-Current VTU:,1808
-Complete Jobs:,56
-Rejected Jobs:,243
-Average Hole:,30.0
-Total Fragmented Bytes:,460.0
-Storage Utilization:,58.333332
-
-Current VTU:,1903
-Complete Jobs:,58
-Rejected Jobs:,257
-Average Hole:,33.333332
-Total Fragmented Bytes:,460.0
-Storage Utilization:,50.555557
-
-Current VTU:,2033
+Rejected Jobs:,46
+Average Hole:,47.272728
+Total Fragmented Bytes:,330
+Storage Utilization:,36.11111
+,
+Current VTU:,1803
+Complete Jobs:,57
+Rejected Jobs:,46
+Average Hole:,48.8
+Total Fragmented Bytes:,330
+Storage Utilization:,26.11111
+,
+Current VTU:,1918
+Complete Jobs:,61
+Rejected Jobs:,60
+Average Hole:,48.333332
+Total Fragmented Bytes:,330
+Storage Utilization:,28.333334
+,
+Current VTU:,2018
 Complete Jobs:,64
-Rejected Jobs:,278
-Average Hole:,36.666668
-Total Fragmented Bytes:,460.0
-Storage Utilization:,40.0
-
-Current VTU:,2108
+Rejected Jobs:,66
+Average Hole:,45.652172
+Total Fragmented Bytes:,380
+Storage Utilization:,33.88889
+,
+Current VTU:,2128
 Complete Jobs:,66
-Rejected Jobs:,288
-Average Hole:,35.517242
-Total Fragmented Bytes:,480.0
-Storage Utilization:,37.77778
-
-Current VTU:,2238
+Rejected Jobs:,66
+Average Hole:,48
+Total Fragmented Bytes:,380
+Storage Utilization:,25.555555
+,
+Current VTU:,2228
+Complete Jobs:,68
+Rejected Jobs:,80
+Average Hole:,42.916668
+Total Fragmented Bytes:,380
+Storage Utilization:,35
+,
+Current VTU:,2318
 Complete Jobs:,71
-Rejected Jobs:,309
-Average Hole:,38.78788
-Total Fragmented Bytes:,480.0
-Storage Utilization:,23.88889
-
-Current VTU:,2328
-Complete Jobs:,73
-Rejected Jobs:,321
-Average Hole:,34.666668
-Total Fragmented Bytes:,480.0
-Storage Utilization:,36.666668
-
-Current VTU:,2418
-Complete Jobs:,75
-Rejected Jobs:,336
-Average Hole:,35.80645
-Total Fragmented Bytes:,480.0
-Storage Utilization:,32.22222
-
-Current VTU:,2513
-Complete Jobs:,78
-Rejected Jobs:,352
-Average Hole:,35.0
-Total Fragmented Bytes:,480.0
-Storage Utilization:,35.0
-
-Current VTU:,2613
-Complete Jobs:,81
-Rejected Jobs:,375
-Average Hole:,36.774193
-Total Fragmented Bytes:,480.0
-Storage Utilization:,30.0
-
-Current VTU:,2723
+Rejected Jobs:,80
+Average Hole:,46.666668
+Total Fragmented Bytes:,380
+Storage Utilization:,22.222221
+,
+Current VTU:,2448
+Complete Jobs:,74
+Rejected Jobs:,81
+Average Hole:,44.642857
+Total Fragmented Bytes:,380
+Storage Utilization:,22.777779
+,
+Current VTU:,2503
+Complete Jobs:,76
+Rejected Jobs:,81
+Average Hole:,47
+Total Fragmented Bytes:,380
+Storage Utilization:,13.888889
+,
+Current VTU:,2603
+Complete Jobs:,80
+Rejected Jobs:,97
+Average Hole:,36.666668
+Total Fragmented Bytes:,500
+Storage Utilization:,31.11111
+,
+Current VTU:,2713
 Complete Jobs:,84
-Rejected Jobs:,387
-Average Hole:,36.875
-Total Fragmented Bytes:,480.0
-Storage Utilization:,27.222221
-
+Rejected Jobs:,133
+Average Hole:,37.741936
+Total Fragmented Bytes:,500
+Storage Utilization:,26.666666
+,
 Current VTU:,2808
 Complete Jobs:,88
-Rejected Jobs:,406
-Average Hole:,36.25
-Total Fragmented Bytes:,480.0
-Storage Utilization:,27.777779
-
-Current VTU:,2933
-Complete Jobs:,91
-Rejected Jobs:,421
-Average Hole:,35.9375
-Total Fragmented Bytes:,480.0
-Storage Utilization:,28.333334
-
-Current VTU:,3038
-Complete Jobs:,93
-Rejected Jobs:,442
-Average Hole:,36.969696
-Total Fragmented Bytes:,480.0
-Storage Utilization:,24.444445
-
-Current VTU:,3108
-Complete Jobs:,95
-Rejected Jobs:,449
-Average Hole:,35.757576
-Total Fragmented Bytes:,500.0
-Storage Utilization:,26.666666
-
-Current VTU:,3228
-Complete Jobs:,99
-Rejected Jobs:,470
-Average Hole:,36.47059
-Total Fragmented Bytes:,500.0
-Storage Utilization:,23.333334
-
-Current VTU:,3313
-Complete Jobs:,101
-Rejected Jobs:,480
-Average Hole:,35.757576
-Total Fragmented Bytes:,500.0
-Storage Utilization:,26.666666
-
-Current VTU:,3418
-Complete Jobs:,106
-Rejected Jobs:,494
-Average Hole:,38.285713
-Total Fragmented Bytes:,500.0
+Rejected Jobs:,141
+Average Hole:,40
+Total Fragmented Bytes:,500
 Storage Utilization:,17.777779
-
-Current VTU:,3538
-Complete Jobs:,109
-Rejected Jobs:,512
-Average Hole:,37.714287
-Total Fragmented Bytes:,500.0
+,
+Current VTU:,2928
+Complete Jobs:,92
+Rejected Jobs:,161
+Average Hole:,39.032257
+Total Fragmented Bytes:,500
+Storage Utilization:,23.88889
+,
+Current VTU:,3008
+Complete Jobs:,94
+Rejected Jobs:,164
+Average Hole:,40.3125
+Total Fragmented Bytes:,500
+Storage Utilization:,19.444445
+,
+Current VTU:,3138
+Complete Jobs:,98
+Rejected Jobs:,178
+Average Hole:,39.696968
+Total Fragmented Bytes:,500
 Storage Utilization:,18.333334
-
-Current VTU:,3603
-Complete Jobs:,111
-Rejected Jobs:,528
-Average Hole:,36.47059
-Total Fragmented Bytes:,500.0
-Storage Utilization:,22.777779
-
-Current VTU:,3728
-Complete Jobs:,114
-Rejected Jobs:,544
-Average Hole:,37.22222
-Total Fragmented Bytes:,500.0
-Storage Utilization:,17.222221
-
+,
+Current VTU:,3228
+Complete Jobs:,101
+Rejected Jobs:,186
+Average Hole:,38.75
+Total Fragmented Bytes:,500
+Storage Utilization:,21.666666
+,
+Current VTU:,3333
+Complete Jobs:,104
+Rejected Jobs:,238
+Average Hole:,34.814816
+Total Fragmented Bytes:,500
+Storage Utilization:,37.77778
+,
+Current VTU:,3413
+Complete Jobs:,107
+Rejected Jobs:,254
+Average Hole:,35.185184
+Total Fragmented Bytes:,500
+Storage Utilization:,37.22222
+,
+Current VTU:,3533
+Complete Jobs:,110
+Rejected Jobs:,308
+Average Hole:,29.545454
+Total Fragmented Bytes:,500
+Storage Utilization:,53.88889
+,
+Current VTU:,3608
+Complete Jobs:,113
+Rejected Jobs:,338
+Average Hole:,29.047619
+Total Fragmented Bytes:,500
+Storage Utilization:,55.555557
+,
+Current VTU:,3703
+Complete Jobs:,115
+Rejected Jobs:,367
+Average Hole:,28.5
+Total Fragmented Bytes:,500
+Storage Utilization:,57.22222
+,
 Current VTU:,3823
-Complete Jobs:,116
-Rejected Jobs:,559
-Average Hole:,38.37838
-Total Fragmented Bytes:,500.0
-Storage Utilization:,12.777778
-
-Current VTU:,3908
 Complete Jobs:,119
-Rejected Jobs:,574
-Average Hole:,39.74359
-Total Fragmented Bytes:,500.0
-Storage Utilization:,5.5555553
-
-Current VTU:,4032
-Complete Jobs:,125
-Rejected Jobs:,594
-Average Hole:,39.5
-Total Fragmented Bytes:,500.0
-Storage Utilization:,3.8888888
-
-Current VTU:,4102
-Complete Jobs:,125
-Rejected Jobs:,617
-Average Hole:,40.243904
-Total Fragmented Bytes:,500.0
-Storage Utilization:,0.0
-
-Current VTU:,4202
+Rejected Jobs:,385
+Average Hole:,30.47619
+Total Fragmented Bytes:,500
+Storage Utilization:,52.77778
+,
+Current VTU:,3938
+Complete Jobs:,122
+Rejected Jobs:,385
+Average Hole:,33.333332
+Total Fragmented Bytes:,500
+Storage Utilization:,43.88889
+,
+Current VTU:,4003
+Complete Jobs:,124
+Rejected Jobs:,385
+Average Hole:,35.76923
+Total Fragmented Bytes:,500
+Storage Utilization:,36.666668
+,
+Current VTU:,4108
 Complete Jobs:,126
-Rejected Jobs:,633
-Average Hole:,40.243904
-Total Fragmented Bytes:,500.0
-Storage Utilization:,0.0
-
-Current VTU:,4328
+Rejected Jobs:,385
+Average Hole:,37.857143
+Total Fragmented Bytes:,500
+Storage Utilization:,29.444445
+,
+Current VTU:,4223
 Complete Jobs:,129
-Rejected Jobs:,646
-Average Hole:,39.75
-Total Fragmented Bytes:,500.0
-Storage Utilization:,3.3333333
-
-Current VTU:,4401
-Complete Jobs:,130
-Rejected Jobs:,656
-Average Hole:,39.75
-Total Fragmented Bytes:,500.0
-Storage Utilization:,3.3333333
-
+Rejected Jobs:,385
+Average Hole:,39.032257
+Total Fragmented Bytes:,500
+Storage Utilization:,21.11111
+,
+Current VTU:,4333
+Complete Jobs:,132
+Rejected Jobs:,399
+Average Hole:,34.074074
+Total Fragmented Bytes:,520
+Storage Utilization:,35.555557
+,
+Current VTU:,4428
+Complete Jobs:,137
+Rejected Jobs:,457
+Average Hole:,29.130434
+Total Fragmented Bytes:,520
+Storage Utilization:,48.333332
+,
 Current VTU:,4503
-Complete Jobs:,131
-Rejected Jobs:,677
-Average Hole:,39.75
-Total Fragmented Bytes:,500.0
-Storage Utilization:,3.3333333
-
-Current VTU:,4636
-Complete Jobs:,133
-Rejected Jobs:,699
-Average Hole:,39.5
-Total Fragmented Bytes:,500.0
-Storage Utilization:,3.8888888
-
-Current VTU:,4715
-Complete Jobs:,135
-Rejected Jobs:,712
-Average Hole:,39.5
-Total Fragmented Bytes:,500.0
-Storage Utilization:,3.8888888
-
-Current VTU:,4808
-Complete Jobs:,136
-Rejected Jobs:,733
-Average Hole:,40.243904
-Total Fragmented Bytes:,500.0
-Storage Utilization:,0.0
-
-Current VTU:,4906
-Complete Jobs:,138
-Rejected Jobs:,743
-Average Hole:,39.75
-Total Fragmented Bytes:,500.0
-Storage Utilization:,3.3333333
+Complete Jobs:,140
+Rejected Jobs:,457
+Average Hole:,31.538462
+Total Fragmented Bytes:,520
+Storage Utilization:,40
+,
+Current VTU:,4603
+Complete Jobs:,144
+Rejected Jobs:,475
+Average Hole:,32.857143
+Total Fragmented Bytes:,520
+Storage Utilization:,33.88889
+,
+Current VTU:,4733
+Complete Jobs:,147
+Rejected Jobs:,481
+Average Hole:,33.793102
+Total Fragmented Bytes:,520
+Storage Utilization:,30
+,
+Current VTU:,4828
+Complete Jobs:,150
+Rejected Jobs:,481
+Average Hole:,35.625
+Total Fragmented Bytes:,520
+Storage Utilization:,21.11111
+,
+Current VTU:,4903
+Complete Jobs:,153
+Rejected Jobs:,487
+Average Hole:,36.764706
+Total Fragmented Bytes:,520
+Storage Utilization:,15
