@@ -87,7 +87,7 @@ public class MemorySimulation {
     /**
      * Starts the simulation of Memory
      */
-    public void start( ) {
+    public void simulate( ) {
         boolean successfullyRemovedFromMemory = true;
 
         int nextStatOutput = 100;
