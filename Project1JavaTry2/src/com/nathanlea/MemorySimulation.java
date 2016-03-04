@@ -4,190 +4,296 @@ import java.util.Queue;
 import java.util.Random;
 
 /**
- * Created by Nathan on 2/8/2016.
+ * <h2>The class is a memory simulation to test and compare first fit/best fit/worst fit memory placement strategies</h2>
+ *
+ * <i>Developed by Nathan Lea on 2/8/2016 - 3/8/2016 for CS4303 Operating Systems</i>
  */
 
+
 public class MemorySimulation {
+    private final int startingPID = 10000;
 
-    final int startingPID = 10000;
-    Random r = new Random();
-    int method = 0;
+    /**
+     * The main memory array for all of the jobs to go into
+     */
+    private int[] memory = new int[180];
 
-    boolean notRejected = true;
-    int nextJobPID = startingPID;
-    int jobsInRange = 0;
-    double turnAroundTime = 0;
-    double waitingTime = 0;
-    double processingTime = 0;
-    int idleTime = 0;
+    /**
+     * Describes what the next id for the job will be,
+     * used to keep track of the many jobs going through the simulation
+     * this is used in the same way as a linux system where the PIDs
+     * increase by ever job
+     */
+    private int nextJobPID = startingPID;
 
-    int[] memory = new int[180];
+    /**
+     * The Random Object used as the random number generator for the system
+     */
+    private Random r = new Random();
 
-    Queue<Integer> readyQueue = new PriorityQueue<Integer>();
-    Integer currentJob = 9001;
-    Queue<Integer> rejectedJobs = new PriorityQueue<Integer>();
+    /**
+     * method
+     * 0 - First Fit
+     * 1 - Best Fit - Current Best Hole
+     * 2 - Worst Fit - Current Worst Hole
+     * 3 - Best Best Fit - Best Hole Ever
+     * 4 - Worst Worst Fit - Worst Hole Ever
+     */
+    private int method = 0;
 
+    /**
+     * used to in the memory placement to tell whether the placement rejected the job
+     */
+    private boolean notRejected = true;
+
+    /**
+     *  Count of the number of jobs completed between 1000 and 4000
+     */
+    private int jobsInRange = 0;
+
+    /**
+     * Track data about completed jobs
+     */
+    private double turnAroundTime = 0, waitingTime = 0, processingTime = 0;
+
+    /**
+     * Counter to track the number of VTU's that the CPU has nothing to do
+     */
+    private int idleTime = 0;
+
+    /**
+     * Ready Queue to track jobs that have been inserted into memory and are waiting to be completed by the CPU
+     */
+    private Queue<Integer> readyQueue = new PriorityQueue<Integer>();
+
+    /**
+     * The current PID of the job that the simulation is working on
+     */
+    private int currentJob = 9001;
+
+    /**
+     * The queue of the rejected jobs that were to big to fit into memory
+     */
+    private Queue<Integer> rejectedJobs = new PriorityQueue<Integer>();
+
+    /**
+     * @param method {@link MemorySimulation#method}
+     */
     public MemorySimulation(int method ) {
         //Starts the memory management
         this.method = method;
     }
 
+    /**
+     * Starts the simulation of Memory
+     */
     public void start( ) {
-        //Main loop
         boolean successfullyRemovedFromMemory = true;
 
         int nextStatOutput = 100;
-        int endVTUTIME = 0;
         int[] jobAtDoor = new int[4];
 
-        //Get first job arrival Time
-        int firstJobArrives = r.nextInt(10)+1;
-        int nextJobArrival = firstJobArrives;
+        int firstJobArrives = getNextJobArrival(), nextJobArrival = firstJobArrives; //Get first job arrival Time
 
-        //Event Generated Loop
-
+        /**
+         * Event driven Memory Simulation Loop
+         */
         for( int VTU = firstJobArrives; VTU < 5000; ) {
-           if(VTU > nextStatOutput) {
-                if(nextStatOutput%1000==0) {
-                    System.out.print("Rejected Job Num: ");
-                    System.out.println(rejectedJobs.size());
-                    System.out.println();
-                }
-                System.out.println("Current VTU:," + VTU);
-                System.out.println("Complete Jobs:," + (currentJob - 10000));
-                System.out.println("Rejected Jobs:," + rejectedJobs.size());
-                System.out.println("Average Hole:," + averageHoleSize());
-                System.out.println("Total Fragmented Bytes:," + totalFragmentBytes());
-                System.out.println("Storage Utilization:," + storageUtilization());
-                System.out.println();//System.out.println();
+
+            /***************************************************
+             * Handle periodic Outputs
+             *
+             * NOTE: Since this is an event driven simulation
+             * this output will never be at 100's exactly
+             **************************************************/
+            if(VTU > nextStatOutput) {
+                if(nextStatOutput%1000==0) outputAt1000();
+                outputAt100(VTU);
                 nextStatOutput+=100;
             }
-            //Initial First Case
+
+            /*********************
+             * Initial First Case
+             ********************/
             if( firstJobArrives == VTU ) {
-                //Generate New Job
                 nextJobPID++;
-                int[] job = loader(nextJobPID, VTU);
-
-                //Place job in memory
-                memoryManager(job);
-
-                //add PID to readyQueue to get activated
-                readyQueue.add(job[0]);
-                nextJobPID++;
+                int[] job = initializer(nextJobPID, VTU); //Generate New Job
+                memoryManager(job, true); //Place job in memory
+                readyQueue.add(job[0]); nextJobPID++; //add PID to readyQueue to get activated
             }
 
+            /***********************
+             * CPU
+             **********************/
             if( currentJob != 9001 ) {
-                //System
-                //Completion
-                //Remove from memory
-
-                int durationOfJob = getDurationOfJob(currentJob);
-                int jobTime = getJobTime(currentJob);
-                successfullyRemovedFromMemory = removeJobFromMemory(currentJob);
-                if( successfullyRemovedFromMemory && ( VTU>=1000 && VTU<=4000 ) ) {
-                    waitingTime += VTU - jobTime;
-                    processingTime += durationOfJob;
-                    turnAroundTime += ( VTU - jobTime ) + durationOfJob;
-                    jobsInRange++;
-                }
+                successfullyRemovedFromMemory = CPU(VTU);
             }
 
+            /***********************************
+             * There is no next job, move VTU to
+             * next event of loading a new job
+             **********************************/
             if(!successfullyRemovedFromMemory && readyQueue.isEmpty()) {
-                //We are in idle so lets hurry this along...
                 idleTime += (nextJobArrival - VTU);
                 VTU = nextJobArrival;
             }
 
-            while( nextJobArrival <= VTU && memoryManager(jobAtDoor) ) {
+            /**********************************
+             * Loader
+             *********************************/
+            while( nextJobArrival <= VTU && memoryManager(jobAtDoor, true) ) {
 
                 if( jobAtDoor[0] != 0 && notRejected ) {
                     readyQueue.add(jobAtDoor[0]);
                     nextJobPID++;
                 }
-                jobAtDoor = loader(nextJobPID, VTU);
-                nextJobArrival += r.nextInt(10)+1;
+                jobAtDoor = initializer(nextJobPID, VTU);
+                nextJobArrival += getNextJobArrival();
             }
 
+            /*******************************
+             * Dispatcher
+             ******************************/
             if( readyQueue.size() != 0 ) {
-                //Start job
-                //Dispatcher
                 currentJob = readyQueue.poll();
                 VTU += getDurationOfJob(currentJob);
             }
-            endVTUTIME = VTU;
         }
-        //Finished
-        //Output data
-        //memoryDump();
-        waitingTime    = waitingTime    / (jobsInRange);
-        turnAroundTime = turnAroundTime / (jobsInRange);
-        processingTime = processingTime / (jobsInRange);
-        System.out.print("COMPLETED," + (currentJob - 10000));
-        System.out.print(",WAITING," + ( nextJobPID - currentJob ));
-        System.out.print(",REJECTED," + rejectedJobs.size());
-        System.out.print(",Turnaround," + turnAroundTime);
-        System.out.print(",Waiting," + waitingTime);
-        System.out.print(",Processing," + processingTime);
-        System.out.print(",Ending Time," + endVTUTIME);
-        System.out.print(",Idle Time," + idleTime);
-        System.out.println();
+        /*************************************
+         * Finished Simulation
+         * Output some information
+         ************************************/
+        endingOutput();
     }
 
-    private int getDurationOfJob(int PID){
-        //Linear Search
-        for( int i = 0; i < memory.length; i++) {
-            if( memory[i] == PID ) {
-                return (memory[i+2]);
-            }
-        }
-        //EXCEPTION
-        //TODO
-        return -1;
+    /**
+     * Used to get a random number to add to the VTU,
+     * to get the next job arrival
+     *
+     * @return Random number 0-10
+     * @see Random
+     */
+    private int getNextJobArrival( ) {
+        return r.nextInt(10)+1;
     }
 
-    private int getJobTime(int PID){
-        //Linear Search
-        for( int i = 0; i < memory.length; i++) {
-            if( memory[i] == PID ) {
-                return (memory[i+3]);
-            }
+    /**
+     * Method to simulation a CPU completed work on a task and calling
+     * the {@link MemorySimulation#memoryManager(int[], boolean)} to remove
+     * the job from {@link MemorySimulation#memory}
+     *
+     * @param VTU Current Virtual Time Unit of the simulation
+     * @return Success of removing the current job from memory
+     */
+    private boolean CPU(int VTU) {
+        int durationOfJob = getDurationOfJob(currentJob);  //Get the duration of the job that is being removed
+        int jobTime = getJobTime(currentJob);              //Get the time that the job was inserted in memory
+
+        /************************************************************
+         * If successfullyRemovedFromMemory is
+         * true the job was found in memory and removed
+         *
+         * If not there was an error but this should
+         * never happen merely protection to not through an error
+         * like in the event of the CPU is stalling
+         * or waiting on a new job to come
+         ************************************************************/
+
+        boolean successfullyRemovedFromMemory = memoryManager(new int[]{currentJob,0,0,0}, false); //Remove from memory
+
+        /************************************************************
+         * If we are in the simulation period get some data from the removed job
+         ***********************************************************/
+
+        if( successfullyRemovedFromMemory && ( VTU>=1000 && VTU<=4000 ) ) {
+            waitingTime += VTU - jobTime;
+            processingTime += durationOfJob;
+            turnAroundTime += ( VTU - jobTime ) + durationOfJob;
+            jobsInRange++;
         }
-        //EXCEPTION
-        //TODO
-        return -1;
+        return successfullyRemovedFromMemory;
     }
 
-    private boolean memoryManager(int[] job) {
+    /**
+     * Calls the {@link Random} to generate the size, duration of the
+     * new job to the system
+     *
+     * @param nextJobPID the next pid to set to the generated job
+     * @param VTU Current Virtual Time Unit of the simulation
+     * @return An int array with the information about a job
+     */
+    public int[] initializer(int nextJobPID, int VTU) {
+        int size = (r.nextInt(26) + 5) * 10;
+        int duration = ((r.nextInt(56)) + 5);
+        duration = 5 * (Math.round(duration / 5));
+        return new int[]{nextJobPID, size, duration, VTU};
+    }
+
+    /**
+     * Places or removes a job into memory
+     * If placing looks at method and calls the proper placement algorithm
+     * If removed calls the dispatched to free memory block
+     *
+     * @param job The array of information about the job to be placed or removed in memory
+     * @param place True is placing a job in memory, False if removing job from memory
+     * @return success of the function, either placing or removing
+     * @see MemorySimulation#placeFirstFit(int, int, int, int)
+     * @see MemorySimulation#placeBestFit(int, int, int, int)
+     * @see MemorySimulation#placeWorstFit(int, int, int, int)
+     * @see MemorySimulation#departure(int)
+     */
+    private boolean memoryManager(int[] job, boolean place) {
         int PID      = job[0];
         int size     = job[1];
         int duration = job[2];
         int genTime  = job[3];
 
-        if(PID == 0) return true;
-        if( method == 0 ) {
-            return placeFirstFit(PID, size, duration, genTime);
-        } else if( method == 1 || method == 3 ) {
-            return placeBestFit(PID, size, duration, genTime);
-        } else if( method == 2 || method == 4 ) {
-            return placeWorstFit(PID, size, duration, genTime);
+        if( PID == 0 ) return true; //The is a catch for the first time through the VTU loop
+
+        /************************************************************
+         * If we are placing use the appropriate memory algorithm
+         ***********************************************************/
+        if( place ) {
+            if (method == 0) {
+                return placeFirstFit(PID, size, duration, genTime);
+            } else if (method == 1 || method == 3) {
+                return placeBestFit(PID, size, duration, genTime);
+            } else if (method == 2 || method == 4) {
+                return placeWorstFit(PID, size, duration, genTime);
+            } else { //Error Case, reject Job
+                rejectedJobs.add(PID);
+                notRejected = false;
+                return true;
+            }
         } else {
-            //It should never ever get here, but if it does
-            //Reject the job
-            rejectedJobs.add(PID);
-            notRejected = false;
-            return true;
+            /************************************************************
+             * If we are removing the job, call the departure with the PID
+             ***********************************************************/
+            return departure(PID);
         }
     }
 
+    /**
+     * The memory placement algorithm that find the first hole and places
+     * the job in the first hole big enough to hold the job
+     *
+     * @param PID The Job Identifier
+     * @param size The size of the Job
+     * @param duration The duration that the job takes to complete
+     * @param genTime What time did the job get put in memory
+     * @return True, if job was placed False, if job either was not placed.
+     * The global notRejected tells the program if the job was reject or not
+     */
     private boolean placeFirstFit(int PID, int size, int duration, int genTime) {
         for (int i = 0; i < memory.length - 1; i++) {
             if (memory[i] == memory[i + 1] || memory[i] == 0) {
-                //Empty job Found
-                //Hole?
-                //Negative means hole
+                /**
+                 * There is a similar piece of memory here, check if it is a hole
+                 */
                 if (memory[i] < 0 || memory[i] == 0) {
-                    //Hole!!
-                    //Will it fit!
+                    /**
+                     * There hole here, count the size of the hole
+                     */
                     int sizeOfHole = 1;
                     int j = i;
                     while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
@@ -195,76 +301,104 @@ public class MemorySimulation {
                         j++;
                     }
                     if ((size / 10) <= sizeOfHole) {
-                        //It will fit!
-                        //Place job
-                        //System.out.println("Job: " + PID + " Size: " + size + " Duration: " + duration + " genTime: " + genTime);
+                        /**
+                         * The job can fit!!
+                         * Place the job in memory
+                         */
                         memory[i] = PID;
-                        memory[i + 1] = size;// ^ PID;
-                        memory[i + 2] = duration;// ^ PID;
-                        memory[i + 3] = genTime;// ^ PID;
+                        memory[i + 1] = size;
+                        memory[i + 2] = duration;
+                        memory[i + 3] = genTime;
                         memory[i + 4] = PID;
                         for (int m = i + 5; m < (size / 10) + (i); m++) {
                             memory[m] = PID;
                         }
                         notRejected = true;
-                        //System.out.println("FIT IN MEM");
                         return true;
                     } else {
-                        //It won't fit, find next hole
+                        /**
+                         * The hole isn't big enough, try next hole
+                         */
                     }
                 }
             }
         }
 
-        //No current hole, will there ever be a hole?
+        /**
+         * No current hole, check if there will ever be a hole
+         */
         for( int i = 0; i< memory.length - 1; i++) {
             if (memory[i] == memory[i + 1] || memory[i] == 0) {
-                //Will it fit! Somewhere
+                /**
+                 * Similar piece of memory, count the size
+                 */
                 int sizeOfHole = 1;
                 int j = i;
                 while (memory.length > j + 1 && (memory[j] == memory[j + 1])) {
                     sizeOfHole++;
                     j++;
                 }
+                /**
+                 * If the hole is currently occupied, add the memory header to the size of the spot
+                 */
                 if( memory[i] > 0 ) { sizeOfHole+=4;  }
                 if( ( size / 10 ) <= sizeOfHole ) {
-                    //it will eventually fit
+                    /**
+                     * The job will eventually fit in memory, wait until that job completes
+                     */
                     notRejected = true;
-                    //System.out.println("Will Fit but not now");
                     return false;
                 }
             }
         }
-        //No possible place for it to go
+        /**
+         * No possible place for it to go
+         * Reject the job, and return true to get next job
+         */
         rejectedJobs.add(PID);
-        //memoryDump();
-        //System.out.println("Wont Fit - Reject - " + size);
         notRejected = false;
         return true;
     }
 
+    /**
+     * The memory strategy that find the best current hole and places the job in that hole
+     * that creates the smallest left over hole
+     *
+     * If method == 3 then this method is also used for best best fit, which places a job in the best
+     * possible hole that will ever be. This is used to expand on and see best fit blow up to create a
+     * bigger difference
+     *
+     * @param PID The Job Identifier
+     * @param size The size of the Job
+     * @param duration The duration that the job takes to complete
+     * @param genTime What time did the job get put in memory
+     * @return True, if job was placed False, if job either was not placed.
+     * The global notRejected tells the program if the job was reject or not
+     */
     private boolean placeBestFit(int PID, int size, int duration, int genTime) {
         int bestSize = 999;
         int bestSizeLocation = 0;
         boolean bestLocationHole = true;
-        boolean currentHole = true;
+        boolean currentHole;
 
         for (int i = 0; i < memory.length - 1; i++) {
             if (memory[i] == memory[i + 1] || memory[i] == 0) {
-                //Hole!!
-                //Will it fit!
-
+                /**
+                 * There is a similar piece of memory here, count the size
+                 */
                 int sizeOfHole = 1;
                 int j = i;
                 while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
                     sizeOfHole++;
                     j++;
                 }
-                // We Found a hole with a size that could fit the job
-                // Is it the best sized hole that we have found
-
-                //Only if it is best best to we want to look at occupied memory
-                if( method == 1 && memory[i] > 0 ) { i=j; continue; }
+                /**
+                 * We Found a hole with a size that could fit the job
+                 * Is it the best sized hole that we have found
+                 *
+                 * Only if it is best best to we want to look at occupied memory
+                 */
+                if( method == 1 && memory[i] > 0 ) { i=j; continue; } //If it is best and not current hole, ignore
 
                 if( memory[i] > 0 ) {
                     sizeOfHole+=4;
@@ -273,6 +407,10 @@ public class MemorySimulation {
                     currentHole = true;
                 }
 
+                /**
+                 * Check if it is the best hole so far, if so
+                 * update the location and size of the best hole
+                 */
                 if ((size / 10) <= sizeOfHole) {
                     int extraRoom = sizeOfHole - (size / 10);
                     int bestSoFarExtraRoom = bestSize - (size / 10);
@@ -281,18 +419,19 @@ public class MemorySimulation {
                         bestSize = sizeOfHole;
                         bestSizeLocation = i;
                         bestLocationHole = currentHole;
-                        //System.out.println("Size: "+ bestSize + " Location: " + bestSizeLocation + " Hole: " + bestLocationHole);
                     }
                 }
                 i=j;
             }
         }
         if( bestLocationHole && bestSize != 999 ) {
-            //Place job
+            /**
+             * Best hole found, place job
+             */
             memory[bestSizeLocation] = PID;
-            memory[bestSizeLocation + 1] = size;// ^ PID;
-            memory[bestSizeLocation + 2] = duration;// ^ PID;
-            memory[bestSizeLocation + 3] = genTime;// ^ PID;
+            memory[bestSizeLocation + 1] = size;
+            memory[bestSizeLocation + 2] = duration;
+            memory[bestSizeLocation + 3] = genTime;
             memory[bestSizeLocation + 4] = PID;
             for (int m = bestSizeLocation + 5; m < (size / 10) + (bestSizeLocation); m++) {
                 memory[m] = PID;
@@ -300,17 +439,23 @@ public class MemorySimulation {
             notRejected = true;
             return true;
         } else if ( !bestLocationHole ) {
-            //The best possible hole is not yet free
-            //Wait until free
+            /**
+             * The best possible hole is not yet free
+             * Wait until free
+             */
             notRejected = true;
             return false;
         } else if ( bestSize == 999 ) {
-            //Check if it will ever fit
-            //If not reject
-            //No current hole, will there ever be a hole?
+            /**
+             * A hole was not found that could fit job.
+             * Check if it will ever fit
+             * If not reject
+             */
             for( int i = 0; i < memory.length - 1; i++) {
                 if (memory[i] == memory[i + 1] || memory[i] == 0) {
-                    //Will it fit! Somewhere
+                    /**
+                     * Count the memory hole, and see if it is big enough
+                     */
                     int sizeOfHole = 1;
                     int j = i;
                     while (memory.length > j + 1 && (memory[j] == memory[j + 1])) {
@@ -319,48 +464,70 @@ public class MemorySimulation {
                     }
                     if( memory[i] > 0 ) { sizeOfHole+=4;  }
                     if( ( size / 10 ) <= sizeOfHole ) {
-                        //it will eventually fit
+                        /**
+                         * The job will eventually fit
+                         */
                         notRejected = true;
-                        //System.out.println("Will Fit but not now");
                         return false;
                     }
                 }
             }
-            //No possible place for it to go
+            /**
+             * Unable to fit into memory
+             * Reject job!
+             */
             rejectedJobs.add(PID);
-            //memoryDump();
-            //System.out.println("Wont Fit - Reject - " + size);
             notRejected = false;
             return true;
         } else {
-            //Not ever going to fit
-            //Reject the job
+            /**
+             * No possible place for it to go
+             * Reject the job, and return true to get next job
+             */
             rejectedJobs.add(PID);
             notRejected = false;
             return true;
         }
     }
 
+    /**
+     * The memory strategy that find the worst current hole and places the job in that hole
+     * that creates the largest left over hole
+     *
+     * If method == 4 then this method is also used for worst worst fit, which places a job in the worst
+     * possible hole that will ever be. This is used to expand on and see worst fit blow up to create a
+     * bigger difference
+     *
+     * @param PID The Job Identifier
+     * @param size The size of the Job
+     * @param duration The duration that the job takes to complete
+     * @param genTime What time did the job get put in memory
+     * @return True, if job was placed False, if job either was not placed.
+     * The global notRejected tells the program if the job was reject or not
+     */
     private boolean placeWorstFit(int PID, int size, int duration, int genTime) {
         int worstSize = 0;
         int worstSizeLocation = 0;
         boolean worstLocationHole = true;
-        boolean currentHole = true;
+        boolean currentHole;
 
         for (int i = 0; i < memory.length - 1; i++) {
             if (memory[i] == memory[i + 1] || memory[i] == 0) {
-                //Hole!!
-                //Will it fit!
+                /**
+                 * There is a similar piece of memory here, count the size
+                 */
                 int sizeOfHole = 1;
                 int j = i;
                 while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
                     sizeOfHole++;
                     j++;
                 }
-                // We Found a hole with a size that could fit the job
-                // Is it the best sized hole that we have found
-
-                //Only if it is worst worst to we want to look at occupied memory
+                /**
+                 * We Found a hole with a size that could fit the job
+                 * Is it the worst sized hole that we have found
+                 *
+                 * Only if it is worst worst to we want to look at occupied memory
+                 */
                 if( method == 2 && memory[i] > 0 ) { i=j; continue; }
 
                 if( memory[i] > 0 ) {
@@ -368,6 +535,10 @@ public class MemorySimulation {
                     currentHole = false;
                 } else { currentHole = true; }
 
+                /**
+                 * Check if it is the worst hole so far, if so
+                 * update the location and size of the worst hole
+                 */
                 if ((size / 10) <= sizeOfHole) {
                     int extraRoom = sizeOfHole - (size / 10);
                     int worstSoFarExtraRoom = worstSize - (size / 10);
@@ -376,36 +547,44 @@ public class MemorySimulation {
                         worstSize = sizeOfHole;
                         worstSizeLocation = i;
                         worstLocationHole = currentHole;
-                        //System.out.println("Size: "+ bestSize + " Location: " + bestSizeLocation + " Hole: " + bestLocationHole);
                     }
                 }
                 i=j;
             }
         }
         if( worstLocationHole && worstSize != 0 ) {
-            //Place job
+            /**
+             * Worst hole found, place job
+             */
             memory[worstSizeLocation] = PID;
-            memory[worstSizeLocation + 1] = size;// ^ PID;
-            memory[worstSizeLocation + 2] = duration;// ^ PID;
-            memory[worstSizeLocation + 3] = genTime;// ^ PID;
+            memory[worstSizeLocation + 1] = size;
+            memory[worstSizeLocation + 2] = duration;
+            memory[worstSizeLocation + 3] = genTime;
             memory[worstSizeLocation + 4] = PID;
+
             for (int m = worstSizeLocation + 5; m < (size / 10) + (worstSizeLocation); m++) {
                 memory[m] = PID;
             }
             notRejected = true;
             return true;
         } else if ( !worstLocationHole ) {
-            //The best possible hole is not yet free
-            //Wait until free
+            /**
+             * The worst possible hole is not yet free
+             * Wait until free
+             */
             notRejected = true;
             return false;
         } else if ( worstSize == 0 ) {
-            //Check if it will ever fit
-            //If not reject
-            //No current hole, will there ever be a hole?
+            /**
+             * A hole was not found that could fit job.
+             * Check if it will ever fit
+             * If not reject
+             */
             for (int i = 0; i < memory.length - 1; i++) {
                 if (memory[i] == memory[i + 1] || memory[i] == 0) {
-                    //Will it fit! Somewhere
+                    /**
+                     * Will it fit! Somewhere
+                     */
                     int sizeOfHole = 1;
                     int j = i;
                     while (memory.length > j + 1 && (memory[j] == memory[j + 1])) {
@@ -416,34 +595,44 @@ public class MemorySimulation {
                         sizeOfHole += 4;
                     }
                     if ((size / 10) <= sizeOfHole) {
-                        //it will eventually fit
+                        /**
+                         * it will eventually fit
+                         */
                         notRejected = true;
-                        //System.out.println("Will Fit but not now");
                         return false;
                     }
                 }
             }
-            //No possible place for it to go
+            /**
+             * No possible place for it to go
+             * Reject the job, and return true to get next job
+             */
             rejectedJobs.add(PID);
-            //memoryDump();
-            //System.out.println("Wont Fit - Reject - " + size);
             notRejected = false;
             return true;
         } else {
-            //Not ever going to fit
-            //Reject the job
+            /**
+             * Not ever going to fit
+             * Reject the job
+             */
             rejectedJobs.add(PID);
             notRejected = false;
             return true;
         }
     }
 
-    private boolean removeJobFromMemory(Integer currentJob) {
+    /**
+     * Frees memory block occupied with the given PID
+     *
+     * @param PID The PID of the job looking to be freed from memory
+     * @return True if memory freeing was successful, False if job was not found in memory
+     */
+    private boolean departure(int PID) {
         for(int i = 0; i < memory.length ; i++) {
-            if(memory[i] ==  currentJob) {
+            if(memory[i] ==  PID) {
                 int size = memory[i+1];
                 for( int j = i; j < ( size / 10) + i; j++ ) {
-                    memory[j] = -1 * currentJob;
+                    memory[j] = -1 * PID;
                 }
                 return true;
             }
@@ -451,13 +640,45 @@ public class MemorySimulation {
         return false;
     }
 
-    public int[] loader(int nextJobPID, int VTU) {
-        int size = (r.nextInt(26)+5)*10;
-        int duration = ((r.nextInt(56))+5);
-        duration = 5*(Math.round(duration/5));
-        return new int[] {nextJobPID, size, duration, VTU};
+    /**
+     * Searches through memory and finds the memory block with
+     * the given PID and return the duration of the job
+     *
+     * @param PID PID of job to find the duration of
+     * @return the duration of the job with the given PID
+     */
+    private int getDurationOfJob(int PID){
+        //Linear Search
+        for( int i = 0; i < memory.length; i++) {
+            if( memory[i] == PID ) {
+                return (memory[i+2]);
+            }
+        }
+        return -1;
     }
 
+    /**
+     * Searches through memory and finds the memory block with
+     * the given PID and return the duration of the job
+     *
+     * @param PID PID of job to find the time of
+     * @return the time of the job with the given PID
+     */
+    private int getJobTime(int PID){
+        //Linear Search
+        for( int i = 0; i < memory.length; i++) {
+            if( memory[i] == PID ) {
+                return (memory[i+3]);
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Loops through all of memory and averages the current holes
+     *
+     * @return the Average Size of the Holes in memory
+     */
     private float averageHoleSize() {
         int total = 0;
         int count = 0;
@@ -480,6 +701,11 @@ public class MemorySimulation {
         return (float) ((total*1.0)/(count*1.0));
     }
 
+    /**
+     * Loops through all of memory and adds the holes less than 5 blocks
+     *
+     * @return The number of blocks in hole less than 5, unusable memory
+     */
     private float totalFragmentBytes() {
         int total = 0;
         for(int i = 0; i < memory.length - 1; i++) {
@@ -501,20 +727,86 @@ public class MemorySimulation {
         return total*10;
     }
 
+    /**
+     * Calculates the total used memory and dives that by the total memory
+     *
+     * @return Used memory / total Memory
+     */
     private float storageUtilization() {
         float total = 0;
-        for(int i = 0; i < memory.length; i++) {
-            if(memory[i] > 0) {
+        for(int m : memory) {
+            if(m > 0) {
                 total++;
             }
         }
         return (float) ((total/180.0) * 100.0);
     }
 
+    /**
+     * Output data about the simulation that just finished
+     * <ul>
+     * <li>Completed Jobs</li>
+     * <li>Waiting Jobs</li>
+     * <li>Rejected Jobs</li>
+     * <li>Turnaround Time</li>
+     * <li>Waiting Time</li>
+     * <li>Processing Time</li>
+     * <li>Idle Time</li> </ul>
+     */
+    private void endingOutput( ) {
+        waitingTime    = waitingTime    / (jobsInRange);
+        turnAroundTime = turnAroundTime / (jobsInRange);
+        processingTime = processingTime / (jobsInRange);
+        System.out.print("COMPLETED," + (currentJob - 10000));
+        System.out.print(",WAITING," + ( nextJobPID - currentJob ));
+        System.out.print(",REJECTED," + rejectedJobs.size());
+        System.out.print(",Turnaround," + turnAroundTime);
+        System.out.print(",Waiting," + waitingTime);
+        System.out.print(",Processing," + processingTime);
+        System.out.print(",Idle Time," + idleTime);
+        System.out.println();
+    }
+
+    /**
+     * Outputs
+     * <ul>
+     * <li>VTU</li>
+     * <li>Completed Jobs</li>
+     * <li>Rejects Jobs</li>
+     * <li>Average Hole</li>
+     * <li>Total Fragmented Bytes</li>
+     * <li>Storage Utilization</li></ul>
+     *
+     * @param VTU Current Virtual Time Unit of the simulation
+     */
+    private void outputAt100( int VTU ) {
+        System.out.println("Current VTU:," + VTU);
+        System.out.println("Complete Jobs:," + (currentJob - 10000));
+        System.out.println("Rejected Jobs:," + rejectedJobs.size());
+        System.out.println("Average Hole:," + averageHoleSize());
+        System.out.println("Total Fragmented Bytes:," + totalFragmentBytes());
+        System.out.println("Storage Utilization:," + storageUtilization());
+        System.out.println();//System.out.println();
+    }
+
+    /**
+     * Outputs the number of current Rejected jobs
+     */
+    private void outputAt1000( ) {
+        System.out.print("Rejected Job Num: ");
+        System.out.println(rejectedJobs.size());
+        System.out.println();
+    }
+
+    /**
+     * Prints a memory dump of the memory array
+     * Used for debug purposes
+     */
     private void memoryDump( ) {
         for(int i = 0; i < 180; i++) {
             System.out.print(memory[i]+ " || ");
         }
         System.out.println();
     }
+
 }
