@@ -1,4 +1,5 @@
 package com.nathanlea;
+import java.security.SecureRandom;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
@@ -27,9 +28,9 @@ public class MemorySimulation {
     private int nextJobPID = startingPID;
 
     /**
-     * The Random Object used as the random number generator for the system
+     * The Secure Random Object used as the random number generator for the system
      */
-    private Random r = new Random();
+    private SecureRandom r = new SecureRandom();
 
     /**
      * method
@@ -82,6 +83,8 @@ public class MemorySimulation {
     public MemorySimulation(int method ) {
         //Starts the memory management
         this.method = method;
+
+        System.out.println("VTU\t|\tTotal Fragmented KBs\t|\tStorage Utilization (Used/Total)\t|\tAverage Hole Size\t|\tRejected Jobs");
     }
 
     /**
@@ -90,7 +93,7 @@ public class MemorySimulation {
     public void simulate( ) {
         boolean successfullyRemovedFromMemory = true;
 
-        int nextStatOutput = 100;
+        int nextStatOutput = 1000;
         int[] jobAtDoor = new int[4];
 
         int firstJobArrives = getNextJobArrival(), nextJobArrival = firstJobArrives; //Get first job arrival Time
@@ -107,8 +110,19 @@ public class MemorySimulation {
              * this output will never be at 100's exactly
              **************************************************/
             if(VTU > nextStatOutput) {
+                outputAt100(nextStatOutput);
                 if(nextStatOutput%1000==0) outputAt1000();
-                outputAt100(VTU);
+                System.out.println();
+                if(nextStatOutput==4000) {
+                    /*************************************
+                     * Finished the Area of Concern
+                     * Output some information
+                     ************************************/
+                    System.out.println("_________________________________________________________________________________________________________________");
+                    System.out.println();
+                    endingOutput();
+                    nextStatOutput = 9999; //Stop outputting
+                }
                 nextStatOutput+=100;
             }
 
@@ -160,10 +174,9 @@ public class MemorySimulation {
             }
         }
         /*************************************
-         * Finished Simulation
-         * Output some information
+         * Final print of rejected jobs
          ************************************/
-        endingOutput();
+        System.out.println("Rejected Jobs @ 5000: " + rejectedJobs.size());
     }
 
     /**
@@ -679,7 +692,7 @@ public class MemorySimulation {
      *
      * @return the Average Size of the Holes in memory
      */
-    private float averageHoleSize() {
+    private String averageHoleSize() {
         int total = 0;
         int count = 0;
         for(int i = 0; i < memory.length - 1; i++) {
@@ -698,7 +711,7 @@ public class MemorySimulation {
             }
         }
         total*=10;
-        return (float) ((total*1.0)/(count*1.0));
+        return String.format("%2.2f",(float) ((total*1.0)/(count*1.0)));
     }
 
     /**
@@ -723,7 +736,6 @@ public class MemorySimulation {
                 }
             }
         }
-        //System.out.println("FRAG: " + total*10);
         return total*10;
     }
 
@@ -732,14 +744,14 @@ public class MemorySimulation {
      *
      * @return Used memory / total Memory
      */
-    private float storageUtilization() {
+    private String storageUtilization() {
         float total = 0;
         for(int m : memory) {
             if(m > 0) {
                 total++;
             }
         }
-        return (float) ((total/180.0) * 100.0);
+        return String.format("%2.2f",(float) ((total/180.0) * 100.0));
     }
 
     /**
@@ -757,14 +769,11 @@ public class MemorySimulation {
         waitingTime    = waitingTime    / (jobsInRange);
         turnAroundTime = turnAroundTime / (jobsInRange);
         processingTime = processingTime / (jobsInRange);
-        System.out.print("COMPLETED," + (currentJob - 10000));
-        System.out.print(",WAITING," + ( nextJobPID - currentJob ));
-        System.out.print(",REJECTED," + rejectedJobs.size());
-        System.out.print(",Turnaround," + turnAroundTime);
-        System.out.print(",Waiting," + waitingTime);
-        System.out.print(",Processing," + processingTime);
-        System.out.print(",Idle Time," + idleTime);
-        System.out.println();
+        System.out.println("Performance Measurement:");
+        System.out.println("Turnaround Time\t" + String.format("%2.2f",turnAroundTime));
+        System.out.println("Waiting Time\t" + String.format("%2.2f",waitingTime));
+        System.out.println("Processing Time\t" + String.format("%2.2f",processingTime));
+        System.out.println("Completed Jobs\t" + (currentJob - 10000));
     }
 
     /**
@@ -777,25 +786,16 @@ public class MemorySimulation {
      * <li>Total Fragmented Bytes</li>
      * <li>Storage Utilization</li></ul>
      *
-     * @param VTU Current Virtual Time Unit of the simulation
      */
     private void outputAt100( int VTU ) {
-        System.out.println("Current VTU:," + VTU);
-        System.out.println("Complete Jobs:," + (currentJob - 10000));
-        System.out.println("Rejected Jobs:," + rejectedJobs.size());
-        System.out.println("Average Hole:," + averageHoleSize());
-        System.out.println("Total Fragmented Bytes:," + totalFragmentBytes());
-        System.out.println("Storage Utilization:," + storageUtilization());
-        System.out.println();//System.out.println();
+        System.out.print(VTU + "|\t\t\t" + totalFragmentBytes()+"\t\t\t|\t\t\t\t\t"+storageUtilization()+"\t\t\t\t|\t\t"+averageHoleSize()+"\t\t\t|");
     }
 
     /**
      * Outputs the number of current Rejected jobs
      */
     private void outputAt1000( ) {
-        System.out.print("Rejected Job Num: ");
-        System.out.println(rejectedJobs.size());
-        System.out.println();
+        System.out.print("\t\t" + rejectedJobs.size());
     }
 
     /**
@@ -808,5 +808,4 @@ public class MemorySimulation {
         }
         System.out.println();
     }
-
 }
