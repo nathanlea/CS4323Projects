@@ -1,4 +1,17 @@
 package com.nathanlea;
+/*****************************************************
+ * Nathan Lea
+ * CS4323
+ * Simulation Project, Phase 1
+ * Sarath Kumar Maddinani
+ * 
+ * MemorySimulation, the class that performs the
+ * memory simulation. Changes the memory placement
+ * based on the number of that is passed into the 
+ * initializer.
+ *
+ ****************************************************/
+
 import java.security.SecureRandom;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -84,7 +97,7 @@ public class MemorySimulation {
         //Starts the memory management
         this.method = method;
 
-        System.out.println("VTU\t|\tTotal Fragmented KBs\t|\tStorage Utilization (Used/Total)\t|\tAverage Hole Size\t|\tRejected Jobs");
+        System.out.println("VTU |Total Fragmented KB|Storage Utilization\t|Average Hole Size|Rejected Jobs");
     }
 
     /**
@@ -118,7 +131,7 @@ public class MemorySimulation {
                      * Finished the Area of Concern
                      * Output some information
                      ************************************/
-                    System.out.println("_________________________________________________________________________________________________________________");
+                    System.out.println("_____________________________________________________________________________");
                     System.out.println();
                     endingOutput();
                     nextStatOutput = 9999; //Stop outputting
@@ -711,7 +724,7 @@ public class MemorySimulation {
             }
         }
         total*=10;
-        return String.format("%2.2f",(float) ((total*1.0)/(count*1.0)));
+        return String.format("%04.2f",(float) ((total*1.0)/(count*1.0)));
     }
 
     /**
@@ -751,7 +764,7 @@ public class MemorySimulation {
                 total++;
             }
         }
-        return String.format("%2.2f",(float) ((total/180.0) * 100.0));
+        return String.format("%03.2f",(float) ((total/180.0) * 100.0));
     }
 
     /**
@@ -770,9 +783,9 @@ public class MemorySimulation {
         turnAroundTime = turnAroundTime / (jobsInRange);
         processingTime = processingTime / (jobsInRange);
         System.out.println("Performance Measurement:");
-        System.out.println("Turnaround Time\t" + String.format("%2.2f",turnAroundTime));
-        System.out.println("Waiting Time\t" + String.format("%2.2f",waitingTime));
-        System.out.println("Processing Time\t" + String.format("%2.2f",processingTime));
+        System.out.println("Turnaround Time\t" + String.format("%02.2f",turnAroundTime));
+        System.out.println("Waiting Time\t" + String.format("%02.2f",waitingTime));
+        System.out.println("Processing Time\t" + String.format("%02.2f",processingTime));
         System.out.println("Completed Jobs\t" + (currentJob - 10000));
     }
 
@@ -780,22 +793,21 @@ public class MemorySimulation {
      * Outputs
      * <ul>
      * <li>VTU</li>
-     * <li>Completed Jobs</li>
-     * <li>Rejects Jobs</li>
-     * <li>Average Hole</li>
      * <li>Total Fragmented Bytes</li>
-     * <li>Storage Utilization</li></ul>
+     * <li>Storage Utilization</li>
+     * <li>Average Hole Size</li>
+     * <li>Rejected Jobs</li></ul>
      *
      */
     private void outputAt100( int VTU ) {
-        System.out.print(VTU + "|\t\t\t" + totalFragmentBytes()+"\t\t\t|\t\t\t\t\t"+storageUtilization()+"\t\t\t\t|\t\t"+averageHoleSize()+"\t\t\t|");
+        System.out.print(VTU + "|        " + totalFragmentBytes()+"      |\t"+storageUtilization()+"\t\t|      "+averageHoleSize()+"      |");
     }
 
     /**
      * Outputs the number of current Rejected jobs
      */
     private void outputAt1000( ) {
-        System.out.print("\t\t" + rejectedJobs.size());
+        System.out.print("    " + rejectedJobs.size());
     }
 
     /**
