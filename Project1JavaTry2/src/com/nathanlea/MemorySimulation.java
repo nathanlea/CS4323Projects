@@ -114,7 +114,7 @@ public class MemorySimulation {
         /**
          * Event driven Memory Simulation Loop
          */
-        for( int VTU = firstJobArrives; VTU < 5000; ) {
+        for( int VTU = firstJobArrives; VTU < 5000;) {
 
             /***************************************************
              * Handle periodic Outputs
@@ -183,7 +183,12 @@ public class MemorySimulation {
              ******************************/
             if( readyQueue.size() != 0 ) {
                 currentJob = readyQueue.poll();
-                VTU += getDurationOfJob(currentJob);
+                int remainingJobDuration = getRemainingDurationOfJob(currentJob);
+                if( remainingJobDuration >= 5 ) {
+                    VTU += 5;
+                } else {
+                    VTU += remainingJobDuration;
+                }
             }
         }
         /*************************************
@@ -312,17 +317,17 @@ public class MemorySimulation {
      */
     private boolean placeFirstFit(int PID, int size, int duration, int genTime) {
         for (int i = 0; i < memory.length - 1; i++) {
-            if (memory[i] == memory[i + 1] || memory[i] == 0) {
+            if (memory[i] == memory[i + 1] && memory[i] == 0) {
                 /**
                  * There is a similar piece of memory here, check if it is a hole
                  */
-                if (memory[i] < 0 || memory[i] == 0) {
+                if (memory[i] == 0) {
                     /**
                      * There hole here, count the size of the hole
                      */
                     int sizeOfHole = 1;
                     int j = i;
-                    while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
+                    while (memory.length > j + 1 && (memory[j] == memory[j + 1] && memory[j] == 0)) {
                         sizeOfHole++;
                         j++;
                     }
@@ -332,7 +337,7 @@ public class MemorySimulation {
                          * Place the job in memory
                          */
                         memory[i] = PID;
-                        memory[i + 1] = size;
+                        memory[i + 1] = duration;
                         memory[i + 2] = duration;
                         memory[i + 3] = genTime;
                         memory[i + 4] = PID;
@@ -354,7 +359,7 @@ public class MemorySimulation {
          * No current hole, check if there will ever be a hole
          */
         for( int i = 0; i< memory.length - 1; i++) {
-            if (memory[i] == memory[i + 1] || memory[i] == 0) {
+            if (memory[i] == memory[i + 1] && memory[i] == 0) {
                 /**
                  * Similar piece of memory, count the size
                  */
@@ -408,13 +413,13 @@ public class MemorySimulation {
         boolean currentHole;
 
         for (int i = 0; i < memory.length - 1; i++) {
-            if (memory[i] == memory[i + 1] || memory[i] == 0) {
+            if (memory[i] == memory[i + 1] && memory[i] == 0) {
                 /**
                  * There is a similar piece of memory here, count the size
                  */
                 int sizeOfHole = 1;
                 int j = i;
-                while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
+                while (memory.length > j + 1 && (memory[j] == memory[j + 1] && memory[j] == 0)) {
                     sizeOfHole++;
                     j++;
                 }
@@ -455,7 +460,7 @@ public class MemorySimulation {
              * Best hole found, place job
              */
             memory[bestSizeLocation] = PID;
-            memory[bestSizeLocation + 1] = size;
+            memory[bestSizeLocation + 1] = duration;
             memory[bestSizeLocation + 2] = duration;
             memory[bestSizeLocation + 3] = genTime;
             memory[bestSizeLocation + 4] = PID;
@@ -478,7 +483,7 @@ public class MemorySimulation {
              * If not reject
              */
             for( int i = 0; i < memory.length - 1; i++) {
-                if (memory[i] == memory[i + 1] || memory[i] == 0) {
+                if (memory[i] == memory[i + 1] && memory[i] == 0) {
                     /**
                      * Count the memory hole, and see if it is big enough
                      */
@@ -538,13 +543,13 @@ public class MemorySimulation {
         boolean currentHole;
 
         for (int i = 0; i < memory.length - 1; i++) {
-            if (memory[i] == memory[i + 1] || memory[i] == 0) {
+            if (memory[i] == memory[i + 1] && memory[i] == 0) {
                 /**
                  * There is a similar piece of memory here, count the size
                  */
                 int sizeOfHole = 1;
                 int j = i;
-                while (memory.length > j + 1 && (memory[j] == memory[j + 1] || memory[j] == 0)) {
+                while (memory.length > j + 1 && (memory[j] == memory[j + 1] && memory[j] == 0)) {
                     sizeOfHole++;
                     j++;
                 }
@@ -583,7 +588,7 @@ public class MemorySimulation {
              * Worst hole found, place job
              */
             memory[worstSizeLocation] = PID;
-            memory[worstSizeLocation + 1] = size;
+            memory[worstSizeLocation + 1] = duration;
             memory[worstSizeLocation + 2] = duration;
             memory[worstSizeLocation + 3] = genTime;
             memory[worstSizeLocation + 4] = PID;
@@ -607,7 +612,7 @@ public class MemorySimulation {
              * If not reject
              */
             for (int i = 0; i < memory.length - 1; i++) {
-                if (memory[i] == memory[i + 1] || memory[i] == 0) {
+                if (memory[i] == memory[i + 1] && memory[i] == 0) {
                     /**
                      * Will it fit! Somewhere
                      */
@@ -658,12 +663,29 @@ public class MemorySimulation {
             if(memory[i] ==  PID) {
                 int size = memory[i+1];
                 for( int j = i; j < ( size / 10) + i; j++ ) {
-                    memory[j] = -1 * PID;
+                    memory[j] = 0;
                 }
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Searches through memory and finds the memory block with
+     * the given PID and return the remaining duration of the job
+     *
+     * @param PID PID of job to find the duration of
+     * @return the duration of the job with the given PID
+     */
+    private int getRemainingDurationOfJob(int PID){
+        //Linear Search
+        for( int i = 0; i < memory.length; i++) {
+            if( memory[i] == PID ) {
+                return (memory[i+1]);
+            }
+        }
+        return -1;
     }
 
     /**
