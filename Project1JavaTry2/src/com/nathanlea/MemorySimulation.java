@@ -2,7 +2,7 @@ package com.nathanlea;
 /*****************************************************
  * Nathan Lea
  * CS4323
- * Simulation Project, Phase 1
+ * Simulation Project, Phase 2
  * Sarath Kumar Maddinani
  * 
  * MemorySimulation, the class that performs the
@@ -76,7 +76,7 @@ public class MemorySimulation {
     /**
      * Ready Queue to track jobs that have been inserted into memory and are waiting to be completed by the CPU
      */
-    private Queue<Integer> readyQueue = new PriorityQueue<Integer>();
+    private Queue<Integer> readyQueue = new LinkedList<Integer>();
 
     /**
      * The current PID of the job that the simulation is working on
@@ -86,7 +86,7 @@ public class MemorySimulation {
     /**
      * The queue of the rejected jobs that were to big to fit into memory
      */
-    private Queue<Integer> rejectedJobs = new PriorityQueue<Integer>();
+    private Queue<Integer> rejectedJobs = new LinkedList<Integer>();
 
     /**
      * @param method {@link MemorySimulation#method}
@@ -142,30 +142,8 @@ public class MemorySimulation {
              ********************/
             if( firstJobArrives == VTU ) {
                 nextJobPID++;
-                int[] job = initializer(nextJobPID, VTU); //Generate New Job
-                //Add job to RR queue
-
-                memoryManager(job, true); //Place job in memory
-                readyQueue.add(job[0]);
-                nextJobPID++; //add PID to readyQueue to get activated
-            }
-
-            /***********************
-             * CPU
-             **********************/
-            if( currentJob != 9001 ) {
-                int remainingJobDuration = getRemainingDurationOfJob(currentJob);
-                if( remainingJobDuration >= 5 ) {
-                    VTU += 5;
-                    decreaseRemainingDurationOfJob(currentJob);
-                    int tempJob = readyQueue.peek();
-                    readyQueue.add(tempJob);
-                } else {
-                    VTU += 5;
-                    //Kick job out
-                    successfullyRemovedFromMemory = CPU(VTU);
-                    //CPU(VTU);
-                }
+                jobAtDoor = initializer(nextJobPID, VTU); //Generate New Job
+                currentJob = jobAtDoor[0];
             }
 
             /***********************************
@@ -181,7 +159,6 @@ public class MemorySimulation {
              * Loader
              *********************************/
             while( nextJobArrival <= VTU && memoryManager(jobAtDoor, true) ) {
-
                 if( jobAtDoor[0] != 0 && notRejected ) {
                     readyQueue.add(jobAtDoor[0]);
                     nextJobPID++;
@@ -190,21 +167,36 @@ public class MemorySimulation {
                 nextJobArrival += getNextJobArrival();
             }
 
-            /*******************************
-             * Dispatcher
-             ******************************/
-            //if( readyQueue.size() != 0 ) {
-                //currentJob = readyQueue.poll();
-            int remainingJobDuration = getRemainingDurationOfJob(currentJob);
-            if( remainingJobDuration >= 5 ) {
-                VTU += 5;
-                decreaseRemainingDurationOfJob(currentJob);
-            } else {
-                VTU += remainingJobDuration;
-                //Kick job out
-                CPU(VTU);
+            /***********************
+             * CPU
+             **********************/
+            if( currentJob != 9001 ) {
+                int remainingJobDuration = getRemainingDurationOfJob(currentJob);
+                if( remainingJobDuration > 5 ) {
+                    VTU += 5;
+                    decreaseRemainingDurationOfJob(currentJob);
+                    if(readyQueue.size() > 1) {
+                        int tempJob = readyQueue.poll();
+                        readyQueue.add(tempJob);
+                        currentJob = readyQueue.peek();
+                    }
+                }
+                /*******************************
+                 * Dispatcher
+                 ******************************/
+                else {
+                    VTU += 5;
+                    //Kick job out
+                    readyQueue.poll(); //Remove job from list
+                    successfullyRemovedFromMemory = CPU(VTU);
+                    if(readyQueue.size()>0)
+                        currentJob = readyQueue.peek(); //Get next job from top of list
+                    else {
+                        VTU=nextJobArrival; //If no next job move VTU to next job arrival
+                        idleTime += (nextJobArrival - VTU);
+                    }
+                }
             }
-            //}
         }
         /*************************************
          * Final print of rejected jobs
@@ -676,8 +668,11 @@ public class MemorySimulation {
     private boolean departure(int PID) {
         for(int i = 0; i < memory.length ; i++) {
             if(memory[i] ==  PID) {
-                int size = memory[i+1];
-                for( int j = i; j < ( size / 10) + i; j++ ) {
+                memory[i] = 0;
+                memory[i+1] = 0;
+                memory[i+2] = 0;
+                memory[i+3] = 0;
+                for( int j = i+4; memory.length > j && memory[j]==PID; j++ ) {
                     memory[j] = 0;
                 }
                 return true;
@@ -698,6 +693,7 @@ public class MemorySimulation {
         for( int i = 0; i < memory.length; i++) {
             if( memory[i] == PID ) {
                 memory[i+1]-=5;
+                return;
             }
         }
         return;

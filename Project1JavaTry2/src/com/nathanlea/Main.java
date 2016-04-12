@@ -2,7 +2,7 @@ package com.nathanlea;
 /*****************************************************
  * Nathan Lea
  * CS4323
- * Simulation Project, Phase 1
+ * Simulation Project, Phase 2
  * Sarath Kumar Maddinani
  * 
  * This is the Main function for the Memory Simulation
