@@ -13,9 +13,7 @@ package com.nathanlea;
  ****************************************************/
 
 import java.security.SecureRandom;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Random;
+import java.util.*;
 
 /**
  * <h2>The class is a memory simulation to test and compare first fit/best fit/worst fit memory placement strategies</h2>
@@ -145,15 +143,29 @@ public class MemorySimulation {
             if( firstJobArrives == VTU ) {
                 nextJobPID++;
                 int[] job = initializer(nextJobPID, VTU); //Generate New Job
+                //Add job to RR queue
+
                 memoryManager(job, true); //Place job in memory
-                readyQueue.add(job[0]); nextJobPID++; //add PID to readyQueue to get activated
+                readyQueue.add(job[0]);
+                nextJobPID++; //add PID to readyQueue to get activated
             }
 
             /***********************
              * CPU
              **********************/
             if( currentJob != 9001 ) {
-                successfullyRemovedFromMemory = CPU(VTU);
+                int remainingJobDuration = getRemainingDurationOfJob(currentJob);
+                if( remainingJobDuration >= 5 ) {
+                    VTU += 5;
+                    decreaseRemainingDurationOfJob(currentJob);
+                    int tempJob = readyQueue.peek();
+                    readyQueue.add(tempJob);
+                } else {
+                    VTU += 5;
+                    //Kick job out
+                    successfullyRemovedFromMemory = CPU(VTU);
+                    //CPU(VTU);
+                }
             }
 
             /***********************************
@@ -181,15 +193,18 @@ public class MemorySimulation {
             /*******************************
              * Dispatcher
              ******************************/
-            if( readyQueue.size() != 0 ) {
-                currentJob = readyQueue.poll();
-                int remainingJobDuration = getRemainingDurationOfJob(currentJob);
-                if( remainingJobDuration >= 5 ) {
-                    VTU += 5;
-                } else {
-                    VTU += remainingJobDuration;
-                }
+            //if( readyQueue.size() != 0 ) {
+                //currentJob = readyQueue.poll();
+            int remainingJobDuration = getRemainingDurationOfJob(currentJob);
+            if( remainingJobDuration >= 5 ) {
+                VTU += 5;
+                decreaseRemainingDurationOfJob(currentJob);
+            } else {
+                VTU += remainingJobDuration;
+                //Kick job out
+                CPU(VTU);
             }
+            //}
         }
         /*************************************
          * Final print of rejected jobs
@@ -669,6 +684,23 @@ public class MemorySimulation {
             }
         }
         return false;
+    }
+
+    /**
+     * Searches through memory and finds the memory block with
+     * the given PID and return the remaining duration of the job
+     *
+     * @param PID PID of job to find the duration of
+     * @return the duration of the job with the given PID
+     */
+    private void decreaseRemainingDurationOfJob(int PID){
+        //Linear Search
+        for( int i = 0; i < memory.length; i++) {
+            if( memory[i] == PID ) {
+                memory[i+1]-=5;
+            }
+        }
+        return;
     }
 
     /**
