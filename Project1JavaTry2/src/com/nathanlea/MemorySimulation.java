@@ -54,9 +54,17 @@ public class MemorySimulation {
     private int method = 0;
 
     /**
+     * Compaction Strategy
+     * 0 - 250
+     * 1 - 500
+     * 2 - Memory Request Denial
+     */
+    private int compactionStrategy = 0;
+
+    /**
      * used to in the memory placement to tell whether the placement rejected the job
      */
-    private boolean notRejected = true;
+    private boolean addtoMemory = true;
 
     /**
      *  Count of the number of jobs completed between 1000 and 4000
@@ -86,14 +94,15 @@ public class MemorySimulation {
     /**
      * The queue of the rejected jobs that were to big to fit into memory
      */
-    private Queue<Integer> rejectedJobs = new LinkedList<Integer>();
+    private Queue<Integer> pendingList = new LinkedList<Integer>();
 
     /**
      * @param method {@link MemorySimulation#method}
      */
-    public MemorySimulation(int method ) {
+    public MemorySimulation(int method, int compactionStrategy ) {
         //Starts the memory management
         this.method = method;
+        this.compactionStrategy = compactionStrategy;
 
         System.out.println("VTU |Total Fragmented KB|Storage Utilization\t|Average Hole Size|Rejected Jobs");
     }
@@ -137,6 +146,12 @@ public class MemorySimulation {
                 nextStatOutput+=100;
             }
 
+            if(compactionStrategy == 0 && VTU % 250 == 0 ) {
+                compactMemory();
+            } else if(compactionStrategy == 1 && VTU % 500 == 0 ) {
+                compactMemory();
+            }
+
             /*********************
              * Initial First Case
              ********************/
@@ -159,7 +174,7 @@ public class MemorySimulation {
              * Loader
              *********************************/
             while( nextJobArrival <= VTU && memoryManager(jobAtDoor, true) ) {
-                if( jobAtDoor[0] != 0 && notRejected ) {
+                if( jobAtDoor[0] != 0 && addtoMemory) {
                     readyQueue.add(jobAtDoor[0]);
                     nextJobPID++;
                 }
@@ -194,6 +209,7 @@ public class MemorySimulation {
                     else {
                         VTU=nextJobArrival; //If no next job move VTU to next job arrival
                         idleTime += (nextJobArrival - VTU);
+                        currentJob++;
                     }
                 }
             }
@@ -201,7 +217,7 @@ public class MemorySimulation {
         /*************************************
          * Final print of rejected jobs
          ************************************/
-        System.out.println("Rejected Jobs @ 5000: " + rejectedJobs.size());
+        System.out.println("Rejected Jobs @ 5000: " + pendingList.size());
     }
 
     /**
@@ -267,6 +283,21 @@ public class MemorySimulation {
         return new int[]{nextJobPID, size, duration, VTU};
     }
 
+    public void compactMemory() {
+        for(int i = 0; i < memory.length; i++) {
+            if(memory[i] == 0){
+                for(int j=i; j < memory.length; j++){
+                    if(memory[j] != 0) {
+                        memory[i] = memory[j];
+                        memory[j]=0;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      * Places or removes a job into memory
      * If placing looks at method and calls the proper placement algorithm
@@ -299,8 +330,8 @@ public class MemorySimulation {
             } else if (method == 2 || method == 4) {
                 return placeWorstFit(PID, size, duration, genTime);
             } else { //Error Case, reject Job
-                rejectedJobs.add(PID);
-                notRejected = false;
+                pendingList.add(PID);
+                addtoMemory = false;
                 return true;
             }
         } else {
@@ -320,7 +351,7 @@ public class MemorySimulation {
      * @param duration The duration that the job takes to complete
      * @param genTime What time did the job get put in memory
      * @return True, if job was placed False, if job either was not placed.
-     * The global notRejected tells the program if the job was reject or not
+     * The global addtoMemory tells the program if the job was reject or not
      */
     private boolean placeFirstFit(int PID, int size, int duration, int genTime) {
         for (int i = 0; i < memory.length - 1; i++) {
@@ -351,7 +382,7 @@ public class MemorySimulation {
                         for (int m = i + 5; m < (size / 10) + (i); m++) {
                             memory[m] = PID;
                         }
-                        notRejected = true;
+                        addtoMemory = true;
                         return true;
                     } else {
                         /**
@@ -384,7 +415,7 @@ public class MemorySimulation {
                     /**
                      * The job will eventually fit in memory, wait until that job completes
                      */
-                    notRejected = true;
+                    addtoMemory = true;
                     return false;
                 }
             }
@@ -393,8 +424,8 @@ public class MemorySimulation {
          * No possible place for it to go
          * Reject the job, and return true to get next job
          */
-        rejectedJobs.add(PID);
-        notRejected = false;
+        pendingList.add(PID);
+        addtoMemory = false;
         return true;
     }
 
@@ -411,7 +442,7 @@ public class MemorySimulation {
      * @param duration The duration that the job takes to complete
      * @param genTime What time did the job get put in memory
      * @return True, if job was placed False, if job either was not placed.
-     * The global notRejected tells the program if the job was reject or not
+     * The global addtoMemory tells the program if the job was reject or not
      */
     private boolean placeBestFit(int PID, int size, int duration, int genTime) {
         int bestSize = 999;
@@ -474,14 +505,14 @@ public class MemorySimulation {
             for (int m = bestSizeLocation + 5; m < (size / 10) + (bestSizeLocation); m++) {
                 memory[m] = PID;
             }
-            notRejected = true;
+            addtoMemory = true;
             return true;
         } else if ( !bestLocationHole ) {
             /**
              * The best possible hole is not yet free
              * Wait until free
              */
-            notRejected = true;
+            addtoMemory = true;
             return false;
         } else if ( bestSize == 999 ) {
             /**
@@ -505,7 +536,7 @@ public class MemorySimulation {
                         /**
                          * The job will eventually fit
                          */
-                        notRejected = true;
+                        addtoMemory = true;
                         return false;
                     }
                 }
@@ -514,16 +545,16 @@ public class MemorySimulation {
              * Unable to fit into memory
              * Reject job!
              */
-            rejectedJobs.add(PID);
-            notRejected = false;
+            pendingList.add(PID);
+            addtoMemory = false;
             return true;
         } else {
             /**
              * No possible place for it to go
              * Reject the job, and return true to get next job
              */
-            rejectedJobs.add(PID);
-            notRejected = false;
+            pendingList.add(PID);
+            addtoMemory = false;
             return true;
         }
     }
@@ -541,7 +572,7 @@ public class MemorySimulation {
      * @param duration The duration that the job takes to complete
      * @param genTime What time did the job get put in memory
      * @return True, if job was placed False, if job either was not placed.
-     * The global notRejected tells the program if the job was reject or not
+     * The global addtoMemory tells the program if the job was reject or not
      */
     private boolean placeWorstFit(int PID, int size, int duration, int genTime) {
         int worstSize = 0;
@@ -603,14 +634,14 @@ public class MemorySimulation {
             for (int m = worstSizeLocation + 5; m < (size / 10) + (worstSizeLocation); m++) {
                 memory[m] = PID;
             }
-            notRejected = true;
+            addtoMemory = true;
             return true;
         } else if ( !worstLocationHole ) {
             /**
              * The worst possible hole is not yet free
              * Wait until free
              */
-            notRejected = true;
+            addtoMemory = true;
             return false;
         } else if ( worstSize == 0 ) {
             /**
@@ -636,7 +667,7 @@ public class MemorySimulation {
                         /**
                          * it will eventually fit
                          */
-                        notRejected = true;
+                        addtoMemory = true;
                         return false;
                     }
                 }
@@ -645,16 +676,16 @@ public class MemorySimulation {
              * No possible place for it to go
              * Reject the job, and return true to get next job
              */
-            rejectedJobs.add(PID);
-            notRejected = false;
+            pendingList.add(PID);
+            addtoMemory = false;
             return true;
         } else {
             /**
              * Not ever going to fit
              * Reject the job
              */
-            rejectedJobs.add(PID);
-            notRejected = false;
+            pendingList.add(PID);
+            addtoMemory = false;
             return true;
         }
     }
@@ -857,7 +888,7 @@ public class MemorySimulation {
      * Outputs the number of current Rejected jobs
      */
     private void outputAt1000( ) {
-        System.out.print("    " + rejectedJobs.size());
+        System.out.print("    " + pendingList.size());
     }
 
     /**
