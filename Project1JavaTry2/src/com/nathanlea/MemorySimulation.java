@@ -94,7 +94,7 @@ public class MemorySimulation {
     /**
      * The queue of the rejected jobs that were to big to fit into memory
      */
-    private Queue<Integer> pendingList = new LinkedList<Integer>();
+    private LinkedList<int[]> pendingList = new LinkedList<int[]>();
 
     /**
      * @param method {@link MemorySimulation#method}
@@ -172,12 +172,31 @@ public class MemorySimulation {
 
             /**********************************
              * Loader
+             * Give preference to memory insertion
+             * to the pending list
+             * If there is still room check to see
+             * if you can insert the new job
+             * If you can't it will get rejected
+             * in the memory manager
              *********************************/
-            while( nextJobArrival <= VTU && memoryManager(jobAtDoor, true) ) {
+            int pendingListJob = 0, index = 0;
+            while( pendingList.size() > 0 && pendingListJob < pendingList.size() && index < pendingList.size() ) {
+                int[] tempJob = pendingList.get(pendingListJob);
+                pendingList.remove(pendingListJob);
+                if(memoryManager(tempJob, true) && !addtoMemory && pendingList.size() != 1) {
+                } else {
+                    pendingListJob++;
+                }
+                if(addtoMemory) {
+                    readyQueue.add(tempJob[0]);
+                }
+                index++;
+            }
+            while( pendingList.size() < 100 && nextJobArrival <= VTU && memoryManager(jobAtDoor, true) ) {
                 if( jobAtDoor[0] != 0 && addtoMemory) {
                     readyQueue.add(jobAtDoor[0]);
-                    nextJobPID++;
                 }
+                nextJobPID++;
                 jobAtDoor = initializer(nextJobPID, VTU);
                 nextJobArrival += getNextJobArrival();
             }
@@ -330,7 +349,7 @@ public class MemorySimulation {
             } else if (method == 2 || method == 4) {
                 return placeWorstFit(PID, size, duration, genTime);
             } else { //Error Case, reject Job
-                pendingList.add(PID);
+                pendingList.add(job);
                 addtoMemory = false;
                 return true;
             }
@@ -424,7 +443,7 @@ public class MemorySimulation {
          * No possible place for it to go
          * Reject the job, and return true to get next job
          */
-        pendingList.add(PID);
+        pendingList.add(new int[]{PID, size, duration, genTime});
         addtoMemory = false;
         return true;
     }
@@ -545,7 +564,7 @@ public class MemorySimulation {
              * Unable to fit into memory
              * Reject job!
              */
-            pendingList.add(PID);
+            pendingList.add(new int[]{PID, size, duration, genTime});
             addtoMemory = false;
             return true;
         } else {
@@ -553,7 +572,7 @@ public class MemorySimulation {
              * No possible place for it to go
              * Reject the job, and return true to get next job
              */
-            pendingList.add(PID);
+            pendingList.add(new int[]{PID, size, duration, genTime});
             addtoMemory = false;
             return true;
         }
@@ -676,7 +695,7 @@ public class MemorySimulation {
              * No possible place for it to go
              * Reject the job, and return true to get next job
              */
-            pendingList.add(PID);
+            pendingList.add(new int[]{PID, size, duration, genTime});
             addtoMemory = false;
             return true;
         } else {
@@ -684,7 +703,7 @@ public class MemorySimulation {
              * Not ever going to fit
              * Reject the job
              */
-            pendingList.add(PID);
+            pendingList.add(new int[]{PID, size, duration, genTime});
             addtoMemory = false;
             return true;
         }
