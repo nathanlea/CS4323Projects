@@ -74,7 +74,7 @@ public class MemorySimulation {
     /**
      * Track data about completed jobs
      */
-    private double turnAroundTime = 0, waitingTime = 0, processingTime = 0;
+    private double turnAroundTime = 0, waitingTime = 0, processingTime = 0, jobCompleted = 0, totalJobsCompleted = 0;
 
     /**
      * Counter to track the number of VTU's that the CPU has nothing to do
@@ -104,7 +104,7 @@ public class MemorySimulation {
         this.method = method;
         this.compactionStrategy = compactionStrategy;
 
-        System.out.println("VTU |Total Fragmented KB|Storage Utilization\t|Average Hole Size|Rejected Jobs");
+        //System.out.println("VTU |Total Fragmented KB|Storage Utilization\t|Average Hole Size|Rejected Jobs");
     }
 
     /**
@@ -129,7 +129,7 @@ public class MemorySimulation {
              * NOTE: Since this is an event driven simulation
              * this output will never be at 100's exactly
              **************************************************/
-            if(VTU > nextStatOutput) {
+           /* if(VTU > nextStatOutput) {
                 outputAt100(nextStatOutput);
                 if(nextStatOutput%1000==0) outputAt1000();
                 System.out.println();
@@ -138,13 +138,13 @@ public class MemorySimulation {
                      * Finished the Area of Concern
                      * Output some information
                      ************************************/
-                    System.out.println("_____________________________________________________________________________");
+                   /* System.out.println("_____________________________________________________________________________");
                     System.out.println();
                     endingOutput();
                     nextStatOutput = 9999; //Stop outputting
                 }
                 nextStatOutput+=100;
-            }
+            }        */
 
             if(compactionStrategy == 0 && VTU % 250 == 0 ) {
                 compactMemory();
@@ -220,6 +220,9 @@ public class MemorySimulation {
                  ******************************/
                 else {
                     VTU += 5;
+                    totalJobsCompleted++;
+                    if(VTU>=1000 && VTU<=4000)
+                        jobCompleted++;
                     //Kick job out
                     readyQueue.poll(); //Remove job from list
                     successfullyRemovedFromMemory = CPU(VTU);
@@ -232,11 +235,36 @@ public class MemorySimulation {
                     }
                 }
             }
+
+            System.out.print(totalJobsCompleted);
+            System.out.print("," + pendingList.size());
+            System.out.print("," + readyQueue.size());
+            System.out.print("," + averageHoleSize());
+            System.out.print("," + totalFragmentBytes());
+            System.out.print("," + storageUtilization());
+            if(jobCompleted != 0) {
+                double tempwaitingTime = waitingTime / (jobCompleted);
+                double tempturnAroundTime = turnAroundTime / (jobCompleted);
+                double tempprocessingTime = processingTime / (jobCompleted);
+                System.out.print("," + String.format("%02.2f", tempturnAroundTime));
+                System.out.print("," + String.format("%02.2f", tempwaitingTime));
+                System.out.print("," + String.format("%02.2f", tempprocessingTime));
+            } else {
+                System.out.print(",,,");
+            }
+            System.out.println();
+            //memoryDump();
+            //readyDump();
+            //pendingDump();
+            //System.out.println();
         }
+
+
         /*************************************
          * Final print of rejected jobs
          ************************************/
-        System.out.println("Rejected Jobs @ 5000: " + pendingList.size());
+        //endingOutput();
+        //System.out.println("Rejected Jobs @ 5000: " + pendingList.size());
     }
 
     /**
@@ -445,6 +473,9 @@ public class MemorySimulation {
          */
         pendingList.add(new int[]{PID, size, duration, genTime});
         addtoMemory = false;
+        if(compactionStrategy  == 2) {
+            compactMemory();
+        }
         return true;
     }
 
@@ -566,6 +597,9 @@ public class MemorySimulation {
              */
             pendingList.add(new int[]{PID, size, duration, genTime});
             addtoMemory = false;
+            if(compactionStrategy  == 2) {
+                compactMemory();
+            }
             return true;
         } else {
             /**
@@ -574,6 +608,9 @@ public class MemorySimulation {
              */
             pendingList.add(new int[]{PID, size, duration, genTime});
             addtoMemory = false;
+            if(compactionStrategy  == 2) {
+                compactMemory();
+            }
             return true;
         }
     }
@@ -697,6 +734,9 @@ public class MemorySimulation {
              */
             pendingList.add(new int[]{PID, size, duration, genTime});
             addtoMemory = false;
+            if(compactionStrategy  == 2) {
+                compactMemory();
+            }
             return true;
         } else {
             /**
@@ -705,6 +745,9 @@ public class MemorySimulation {
              */
             pendingList.add(new int[]{PID, size, duration, genTime});
             addtoMemory = false;
+            if(compactionStrategy  == 2) {
+                compactMemory();
+            }
             return true;
         }
     }
@@ -886,7 +929,7 @@ public class MemorySimulation {
         System.out.println("Turnaround Time\t" + String.format("%02.2f",turnAroundTime));
         System.out.println("Waiting Time\t" + String.format("%02.2f",waitingTime));
         System.out.println("Processing Time\t" + String.format("%02.2f",processingTime));
-        System.out.println("Completed Jobs\t" + (currentJob - 10000));
+        System.out.println("Completed Jobs\t" + jobCompleted);
     }
 
     /**
@@ -917,6 +960,24 @@ public class MemorySimulation {
     private void memoryDump( ) {
         for(int i = 0; i < 180; i++) {
             System.out.print(memory[i]+ " || ");
+        }
+        System.out.println();
+    }
+
+    private void readyDump( ) {
+        for(int i = 0; i < readyQueue.size(); i++) {
+            int temp = readyQueue.poll();
+            System.out.print(temp+ " || ");
+            readyQueue.add(temp);
+        }
+        System.out.println();
+    }
+
+    private void pendingDump( ) {
+        for(int i = 0; i < pendingList.size(); i++) {
+            int[] temp = pendingList.poll();
+            System.out.print(temp[0]+ " || ");
+            pendingList.add(temp);
         }
         System.out.println();
     }
