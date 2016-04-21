@@ -22,9 +22,15 @@ public class Main {
          * 3 - Best Best Fit - Best Hole Ever
          * 4 - Worst Worst Fit - Worst Hole Ever
          */
-       //System.out.println("====================================== First Fit ===============================");
+        /**
+         * Compaction Scenario
+         * 0 - Every 250
+         * 1 - Every 500
+         * 2 - Every Memory Denial
+         */
+       System.out.println("====================================== First Fit ===============================");
        new MemorySimulation(0, 0).simulate();
-       /*System.out.println("====================================== First Fit ===============================");
+       System.out.println("====================================== First Fit ===============================");
        new MemorySimulation(0, 1).simulate();
        System.out.println("====================================== First Fit ===============================");
        new MemorySimulation(0, 2).simulate();
@@ -51,6 +57,6 @@ public class Main {
        System.out.println("\n================================= Worst Worst Fit ==============================");
        new MemorySimulation(4, 1).simulate();
        System.out.println("\n================================= Worst Worst Fit ==============================");
-       new MemorySimulation(4, 2).simulate(); */
+       new MemorySimulation(4, 2).simulate();
     }
 }

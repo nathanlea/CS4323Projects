@@ -18,7 +18,7 @@ import java.util.*;
 /**
  * <h2>The class is a memory simulation to test and compare first fit/best fit/worst fit memory placement strategies</h2>
  *
- * <i>Developed by Nathan Lea on 2/8/2016 - 3/8/2016 for CS4303 Operating Systems</i>
+ * <i>Developed by Nathan Lea on 2/8/2016 - 4/21/2016 for CS4303 Operating Systems</i>
  */
 
 
@@ -92,9 +92,17 @@ public class MemorySimulation {
     private int currentJob = 9001;
 
     /**
-     * The queue of the rejected jobs that were to big to fit into memory
+     * The list of the pending jobs that are waiting to fit into memory
      */
     private LinkedList<int[]> pendingList = new LinkedList<int[]>();
+
+    /**
+     * Output lists to print at the appropriate interval
+     */
+    private LinkedList<int[]> pendingList1000 = new LinkedList<int[]>();
+    private LinkedList<int[]> pendingList2000 = new LinkedList<int[]>();
+    private LinkedList<int[]> pendingList3000 = new LinkedList<int[]>();
+    private LinkedList<int[]> pendingList4000 = new LinkedList<int[]>();
 
     /**
      * @param method {@link MemorySimulation#method}
@@ -104,7 +112,7 @@ public class MemorySimulation {
         this.method = method;
         this.compactionStrategy = compactionStrategy;
 
-        //System.out.println("VTU |Total Fragmented KB|Storage Utilization\t|Average Hole Size|Rejected Jobs");
+        System.out.println("VTU |Total Fragmented B|Average Hole Size(B)");
     }
 
     /**
@@ -129,22 +137,34 @@ public class MemorySimulation {
              * NOTE: Since this is an event driven simulation
              * this output will never be at 100's exactly
              **************************************************/
-           /* if(VTU > nextStatOutput) {
-                outputAt100(nextStatOutput);
-                if(nextStatOutput%1000==0) outputAt1000();
-                System.out.println();
-                if(nextStatOutput==4000) {
-                    /*************************************
-                     * Finished the Area of Concern
-                     * Output some information
-                     ************************************/
-                   /* System.out.println("_____________________________________________________________________________");
-                    System.out.println();
-                    endingOutput();
-                    nextStatOutput = 9999; //Stop outputting
-                }
+             if(VTU > nextStatOutput && nextStatOutput <= 4000) {
+                 if( nextStatOutput % 100 == 0 ) {
+                     outputAt100(nextStatOutput);
+                     System.out.println();
+                 }
+                 if(nextStatOutput==1000) {
+                     pendingList1000 = (LinkedList<int[]>) pendingList.clone();
+                 }
+                 if(nextStatOutput==2000) {
+                     pendingList2000 = (LinkedList<int[]>) pendingList.clone();
+                 }
+                 if(nextStatOutput==3000) {
+                     pendingList3000 = (LinkedList<int[]>) pendingList.clone();
+                 }
+                 if(nextStatOutput==4000) {
+                     pendingList4000 = (LinkedList<int[]>) pendingList.clone();
+                 }
+                 if(nextStatOutput==4000) {
+                     /*************************************
+                      * Finished the Area of Concern
+                      * Output some information
+                      ************************************/
+                     System.out.println("_____________________________________________________________________________");
+                     System.out.println();
+                     endingOutput();
+                 }
                 nextStatOutput+=100;
-            }        */
+            }
 
             if(compactionStrategy == 0 && VTU % 250 == 0 ) {
                 compactMemory();
@@ -235,36 +255,23 @@ public class MemorySimulation {
                     }
                 }
             }
-
-            System.out.print(totalJobsCompleted);
-            System.out.print("," + pendingList.size());
-            System.out.print("," + readyQueue.size());
-            System.out.print("," + averageHoleSize());
-            System.out.print("," + totalFragmentBytes());
-            System.out.print("," + storageUtilization());
-            if(jobCompleted != 0) {
-                double tempwaitingTime = waitingTime / (jobCompleted);
-                double tempturnAroundTime = turnAroundTime / (jobCompleted);
-                double tempprocessingTime = processingTime / (jobCompleted);
-                System.out.print("," + String.format("%02.2f", tempturnAroundTime));
-                System.out.print("," + String.format("%02.2f", tempwaitingTime));
-                System.out.print("," + String.format("%02.2f", tempprocessingTime));
-            } else {
-                System.out.print(",,,");
-            }
-            System.out.println();
-            //memoryDump();
-            //readyDump();
-            //pendingDump();
-            //System.out.println();
         }
-
-
         /*************************************
-         * Final print of rejected jobs
+         * Final print of pending list
          ************************************/
-        //endingOutput();
-        //System.out.println("Rejected Jobs @ 5000: " + pendingList.size());
+        if(compactionStrategy == 2) {
+            System.out.println("");
+            System.out.println("Pending List 1000");
+            pendingDump(pendingList1000);
+            System.out.println("Pending List 2000");
+            pendingDump(pendingList2000);
+            System.out.println("Pending List 3000");
+            pendingDump(pendingList3000);
+            System.out.println("Pending List 4000");
+            pendingDump(pendingList4000);
+            System.out.println("Pending List 5000");
+            pendingDump(pendingList);
+        }
     }
 
     /**
@@ -330,6 +337,14 @@ public class MemorySimulation {
         return new int[]{nextJobPID, size, duration, VTU};
     }
 
+
+    /**
+     *
+     * Compacts Memory, find the first zero, then finds the
+     * next non-zero and swaps the two. Continues until all
+     * the zeros are at the bottom of memory
+     *
+     */
     public void compactMemory() {
         for(int i = 0; i < memory.length; i++) {
             if(memory[i] == 0){
@@ -867,6 +882,7 @@ public class MemorySimulation {
             }
         }
         total*=10;
+        if(count==0) return "0";
         return String.format("%04.2f",(float) ((total*1.0)/(count*1.0)));
     }
 
@@ -929,7 +945,7 @@ public class MemorySimulation {
         System.out.println("Turnaround Time\t" + String.format("%02.2f",turnAroundTime));
         System.out.println("Waiting Time\t" + String.format("%02.2f",waitingTime));
         System.out.println("Processing Time\t" + String.format("%02.2f",processingTime));
-        System.out.println("Completed Jobs\t" + jobCompleted);
+        System.out.println("Completed Jobs\t" + totalJobsCompleted);
     }
 
     /**
@@ -943,7 +959,7 @@ public class MemorySimulation {
      *
      */
     private void outputAt100( int VTU ) {
-        System.out.print(VTU + "|        " + totalFragmentBytes()+"      |\t"+storageUtilization()+"\t\t|      "+averageHoleSize()+"      |");
+        System.out.print(VTU + "|        " + totalFragmentBytes()+"      |\t"+averageHoleSize());
     }
 
     /**
@@ -973,11 +989,15 @@ public class MemorySimulation {
         System.out.println();
     }
 
-    private void pendingDump( ) {
-        for(int i = 0; i < pendingList.size(); i++) {
-            int[] temp = pendingList.poll();
-            System.out.print(temp[0]+ " || ");
-            pendingList.add(temp);
+    private void pendingDump( LinkedList<int[]> list ) {
+        for(int i = 0; i < list.size(); i++) {
+            int[] temp = list.poll();
+            System.out.print("Job     : " + temp[0]);
+            System.out.print("\tSize    : " + temp[1]);
+            System.out.print("\tDuration: " + temp[2]);
+            System.out.print("\tVTU Time: " + temp[3]);
+            System.out.println();
+            list.add(temp);
         }
         System.out.println();
     }
